@@ -1,0 +1,6 @@
+dependencies{
+	compileAndIncludeInJar project(":automation.common")
+	compileAndIncludeInJar fileTree(dir: '../lib', include: '*.jar')
+	
+	compile gradleApi()
+}
