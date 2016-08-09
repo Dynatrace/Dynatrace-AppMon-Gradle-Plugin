@@ -65,7 +65,7 @@ public class DtMemoryDump extends DtAgentBase {
 
 			int timeout = waitForDumpTimeout;
 
-			JobState memoryDumpJobState = memoryDumps.getMemoryDump(this.getProfileName(), memoryDump).getState();
+			JobState memoryDumpJobState = memoryDumps.getMemoryDumpJob(this.getProfileName(), memoryDump).getState();
 			boolean dumpFinished = memoryDumpJobState.equals(JobState.FINISHED) || memoryDumpJobState.equals(JobState.FAILED);
 
 			while (!dumpFinished && (timeout > 0)) {
@@ -75,7 +75,7 @@ public class DtMemoryDump extends DtAgentBase {
 				} catch (InterruptedException e) {
 				}
 
-				memoryDumpJobState = memoryDumps.getMemoryDump(this.getProfileName(), memoryDump).getState();
+				memoryDumpJobState = memoryDumps.getMemoryDumpJob(this.getProfileName(), memoryDump).getState();
 				dumpFinished = memoryDumpJobState.equals(JobState.FINISHED) || memoryDumpJobState.equals(JobState.FAILED);
 			}
 
