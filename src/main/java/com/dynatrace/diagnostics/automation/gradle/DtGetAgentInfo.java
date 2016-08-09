@@ -1,17 +1,14 @@
 package com.dynatrace.diagnostics.automation.gradle;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.dynatrace.diagnostics.automation.rest.sdk.entity.Agent;
 import com.dynatrace.sdk.server.agentsandcollectors.AgentsAndCollectors;
 import com.dynatrace.sdk.server.agentsandcollectors.models.AgentInformation;
 import com.dynatrace.sdk.server.agentsandcollectors.models.Agents;
 import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
 import com.dynatrace.sdk.server.exceptions.ServerResponseException;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.impldep.org.apache.maven.model.Build;
 import org.gradle.tooling.BuildException;
+
+import java.util.List;
 
 public class DtGetAgentInfo extends DtServerBase {
 	private int infoForAgentByIndex = -1;

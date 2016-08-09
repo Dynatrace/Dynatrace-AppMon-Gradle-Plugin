@@ -1,6 +1,5 @@
 package com.dynatrace.diagnostics.automation.gradle;
 
-import com.dynatrace.diagnostics.automation.rest.sdk.RESTEndpoint;
 import com.dynatrace.sdk.org.apache.http.client.utils.URIBuilder;
 import com.dynatrace.sdk.server.BasicServerConfiguration;
 import com.dynatrace.sdk.server.DynatraceClient;
@@ -14,7 +13,6 @@ public abstract class DtServerBase extends GradleTask {
 	private String username = null;
 	private String password = null;
 	private String serverUrl = null;
-	private RESTEndpoint endpoint = null;
 
 	private DynatraceClient dynatraceClient;
 
@@ -51,12 +49,6 @@ public abstract class DtServerBase extends GradleTask {
 
 		return this.dynatraceClient;
 	}
-/*
-	public RESTEndpoint getEndpoint() {
-		if(endpoint == null)
-			endpoint = new RESTEndpoint(getUsername(), getPassword(), getServerUrl());
-		return endpoint;
-	}*/
 
 	public void setUsername(String username) {
 		this.username = username;

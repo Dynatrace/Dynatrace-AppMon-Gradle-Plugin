@@ -5,7 +5,6 @@ import com.dynatrace.sdk.server.exceptions.ServerResponseException;
 import com.dynatrace.sdk.server.resourcedumps.ResourceDumps;
 import com.dynatrace.sdk.server.resourcedumps.models.CreateThreadDumpRequest;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.impldep.org.apache.maven.model.Build;
 import org.gradle.tooling.BuildException;
 
 public class DtThreadDump extends DtAgentBase {

@@ -8,13 +8,10 @@ import com.dynatrace.sdk.server.memorydumps.models.JobState;
 import com.dynatrace.sdk.server.memorydumps.models.MemoryDumpJob;
 import com.dynatrace.sdk.server.memorydumps.models.StoredSessionType;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.impldep.org.apache.maven.model.Build;
 import org.gradle.tooling.BuildException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Arrays;
 
 public class DtMemoryDump extends DtAgentBase {
 	private String dumpType;

@@ -9,18 +9,20 @@
  */
 package com.dynatrace.diagnostics.automation.gradle;
 
+import com.dynatrace.diagnostics.automation.common.DtStartTestCommon;
+import com.dynatrace.sdk.server.testautomation.TestAutomation;
+import com.dynatrace.sdk.server.testautomation.models.CreateTestRunRequest;
+import com.dynatrace.sdk.server.testautomation.models.TestCategory;
+import com.dynatrace.sdk.server.testautomation.models.TestMetaData;
+import com.dynatrace.sdk.server.testautomation.models.TestRun;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.tooling.BuildException;
+
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import com.dynatrace.diagnostics.automation.common.DtStartTestCommon;
-
-import com.dynatrace.sdk.server.testautomation.TestAutomation;
-import com.dynatrace.sdk.server.testautomation.models.*;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.tooling.BuildException;
 
 /**
  * Gradle task to start a testrun.

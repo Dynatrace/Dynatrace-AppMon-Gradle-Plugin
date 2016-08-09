@@ -3,7 +3,6 @@ package com.dynatrace.diagnostics.automation.gradle;
 import com.dynatrace.sdk.server.agentsandcollectors.AgentsAndCollectors;
 import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
 import com.dynatrace.sdk.server.exceptions.ServerResponseException;
-import com.dynatrace.sdk.server.servermanagement.ServerManagement;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 

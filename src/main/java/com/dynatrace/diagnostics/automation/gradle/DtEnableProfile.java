@@ -6,8 +6,6 @@ import com.dynatrace.sdk.server.systemprofiles.SystemProfiles;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
-import java.net.URISyntaxException;
-
 public class DtEnableProfile extends DtServerProfileBase {
 
 	private boolean enable;
