@@ -1,7 +1,20 @@
 package com.dynatrace.diagnostics.automation.gradle;
 
+import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
+import com.dynatrace.sdk.server.exceptions.ServerResponseException;
+import com.dynatrace.sdk.server.memorydumps.MemoryDumps;
+import com.dynatrace.sdk.server.memorydumps.models.AgentPattern;
+import com.dynatrace.sdk.server.memorydumps.models.JobState;
+import com.dynatrace.sdk.server.memorydumps.models.MemoryDumpJob;
+import com.dynatrace.sdk.server.memorydumps.models.StoredSessionType;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.impldep.org.apache.maven.model.Build;
 import org.gradle.tooling.BuildException;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Arrays;
 
 public class DtMemoryDump extends DtAgentBase {
 	private String dumpType;
@@ -22,26 +35,59 @@ public class DtMemoryDump extends DtAgentBase {
 	public void executeTask() throws BuildException {
 		System.out.println("Creating Memory Dump for " + getProfileName() + "-" + getAgentName() + "-" + getHostName() + "-" + getProcessId()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 
-		String memoryDump = getEndpoint().memoryDump(getProfileName(), getAgentName(), getHostName(), getProcessId(), getDumpType(), isSessionLocked(), getCaptureStrings(), getCapturePrimitives(), getAutoPostProcess(), getDoGc());
-		this.setDumpName(memoryDump);
+		MemoryDumps memoryDumps = new MemoryDumps(this.getDynatraceClient());
 
-		if (memoryDump == null || memoryDump.length() == 0) {
-			throw new BuildException("Memory Dump wasn't taken", new Exception()); //$NON-NLS-1$
-		}
-		
-		int timeout = waitForDumpTimeout;
-		boolean dumpFinished = getEndpoint().memoryDumpStatus(getProfileName(), memoryDump).isResultValueTrue();
-		while(!dumpFinished && (timeout > 0)) {
+		MemoryDumpJob memoryDumpJob = new MemoryDumpJob();
+		memoryDumpJob.setAgentPattern(new AgentPattern(this.getAgentName(), this.getHostName(), this.getProcessId()));
+		memoryDumpJob.setStoredSessionType(StoredSessionType.fromInternal(this.getDumpType())); /* TODO FIXME - dump type is wrong? use new values with prefixes! */
+		memoryDumpJob.setSessionLocked(this.isSessionLocked());
+		memoryDumpJob.setCaptureStrings(this.getCaptureStrings());
+		memoryDumpJob.setCapturePrimitives(this.getCapturePrimitives());
+		memoryDumpJob.setPostProcessed(this.getAutoPostProcess());
+		memoryDumpJob.setDogc(this.getDoGc());
+
+		try {
+			String memoryDumpLocation = memoryDumps.createMemoryDumpJob(this.getProfileName(), memoryDumpJob);
+
+			URI uri = new URI(memoryDumpLocation);
+			String[] uriPathArray = uri.getPath().split("/");
+
+			String memoryDump = null;
+
 			try {
-				java.lang.Thread.sleep(waitForDumpPollingInterval);
-				timeout -= waitForDumpPollingInterval;
-			} catch (InterruptedException e) {
+				memoryDump = uriPathArray[uriPathArray.length - 1];
+			} catch (ArrayIndexOutOfBoundsException e) {
+				throw new BuildException("Malformed memory dump response", new Exception()); //$NON-NLS-1$
 			}
-			
-			dumpFinished = getEndpoint().memoryDumpStatus(getProfileName(), memoryDump).isResultValueTrue();
-		}
 
-		this.setDumpFinished(dumpFinished);
+			this.setDumpName(memoryDump);
+
+			if (memoryDump == null || memoryDump.length() == 0) {
+				throw new BuildException("Memory Dump wasn't taken", new Exception()); //$NON-NLS-1$
+			}
+
+			int timeout = waitForDumpTimeout;
+
+			JobState memoryDumpJobState = memoryDumps.getMemoryDump(this.getProfileName(), memoryDump).getState();
+			boolean dumpFinished = memoryDumpJobState.equals(JobState.FINISHED) || memoryDumpJobState.equals(JobState.FAILED);
+
+			while (!dumpFinished && (timeout > 0)) {
+				try {
+					java.lang.Thread.sleep(waitForDumpPollingInterval);
+					timeout -= waitForDumpPollingInterval;
+				} catch (InterruptedException e) {
+				}
+
+				memoryDumpJobState = memoryDumps.getMemoryDump(this.getProfileName(), memoryDump).getState();
+				dumpFinished = memoryDumpJobState.equals(JobState.FINISHED) || memoryDumpJobState.equals(JobState.FAILED);
+			}
+
+			this.setDumpFinished(dumpFinished);
+		} catch (ServerConnectionException | ServerResponseException e) {
+			throw new BuildException(e.getMessage(), e);
+		} catch (URISyntaxException e) {
+			throw new BuildException(e.getMessage(), e);
+		}
 	}
 
 	private boolean getCaptureStrings() {
