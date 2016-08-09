@@ -1,5 +1,8 @@
 package com.dynatrace.diagnostics.automation.gradle;
 
+import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
+import com.dynatrace.sdk.server.exceptions.ServerResponseException;
+import com.dynatrace.sdk.server.sessions.Sessions;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
@@ -26,15 +29,17 @@ public class DtStopRecording extends DtServerProfileBase {
 		}
 		String sessionName=null;
 		try {
-			sessionName = getEndpoint().stopRecording(getProfileName());
+			Sessions sessions = new Sessions(this.getDynatraceClient());
+			sessionName = sessions.stopRecording(this.getProfileName());
 
 			log(String.format("Stopped recording on %1$s with SessionName %2$s", getProfileName(), sessionName)); //$NON-NLS-1$
 			this.setRecordedSessionName(sessionName); //local-scope
 			this.getProjectProperties().setSessionName(sessionName); //global-scope
 
 			if (doReanalyzeSession) {
-				boolean reanalyzeFinished = getEndpoint().reanalyzeSessionStatus(sessionName);
-				if (getEndpoint().reanalyzeSession(sessionName)) {
+				boolean reanalyzeFinished = sessions.getReanalysisStatus(sessionName);
+
+				if (sessions.reanalyze(sessionName)) {
 					int timeout = reanalyzeSessionTimeout;
 					while (!reanalyzeFinished && (timeout > 0)) {
 						try {
@@ -43,7 +48,7 @@ public class DtStopRecording extends DtServerProfileBase {
 						} catch (InterruptedException e) {
 						}
 
-						reanalyzeFinished = getEndpoint().reanalyzeSessionStatus(sessionName);
+						reanalyzeFinished = sessions.getReanalysisStatus(sessionName);
 					}
 				}
 
@@ -55,6 +60,8 @@ public class DtStopRecording extends DtServerProfileBase {
 			}
 			log(String.format(
 					"Caught exception while Stopping session recording of session %1$s on profile %2$s. Since failOnError==true ignoring this exception.\n\tException message: %3$s", sessionName,getProfileName(),e.getMessage()), e, LogLevel.WARN); //$NON-NLS-1$
+		} catch (ServerConnectionException | ServerResponseException e) {
+			throw new BuildException(e.getMessage(), e);
 		}
 	}
 

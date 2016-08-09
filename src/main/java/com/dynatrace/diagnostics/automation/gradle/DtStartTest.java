@@ -16,6 +16,8 @@ import java.util.List;
 
 import com.dynatrace.diagnostics.automation.common.DtStartTestCommon;
 
+import com.dynatrace.sdk.server.testautomation.TestAutomation;
+import com.dynatrace.sdk.server.testautomation.models.*;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
@@ -36,7 +38,7 @@ public class DtStartTest extends DtServerProfileBase {
 	private String marker;
 	private String category;
 	private String platform;
-	private String loadTestName;
+	private String loadTestName; //TODO - remove?
 	private final List<CustomProperty> properties = new ArrayList<CustomProperty>();
 
 
@@ -79,9 +81,26 @@ public class DtStartTest extends DtServerProfileBase {
 			log(DtStartTestCommon.generateInfoMessage(getProfileName(), versionMajor, versionMinor, versionRevision,
 					versionBuild, versionMilestone, marker, category, loadTestName, platform, additionalInformation),
 					LogLevel.INFO);
-			String testrunUUID = getEndpoint().startTest(getProfileName(), versionMajor,
-					versionMinor, versionRevision, versionBuild, versionMilestone,
-					marker, category, platform, loadTestName, additionalInformation);
+
+			TestAutomation testAutomation = new TestAutomation(this.getDynatraceClient());
+
+			CreateTestRunRequest request = new CreateTestRunRequest();
+			request.setSystemProfile(this.getProfileName());
+			request.setVersionMajor(this.versionMajor);
+			request.setVersionMinor(this.versionMinor);
+			request.setVersionRevision(this.versionRevision);
+			request.setVersionBuild(this.versionBuild);
+			request.setVersionMilestone(this.versionMilestone);
+			request.setMarker(this.marker);
+			request.setCategory(TestCategory.fromInternal(this.category));
+			request.setPlatform(this.platform);
+			request.setAdditionalMetaData(new TestMetaData(additionalInformation));
+
+			/* FIXME? TODO? loadTestName is not used anymore! */
+			TestRun testRun = testAutomation.createTestRun(request);
+
+			String testrunUUID = testRun.getId();
+
 			log(MessageFormat.format(DtStartTestCommon.TESTRUN_ID_PROPERTY_MESSAGE, testrunUUID));
 
 			//this.getProjectProperties().setProperty(DtStartTestCommon.TESTRUN_ID_PROPERTY_NAME, testrunUUID);

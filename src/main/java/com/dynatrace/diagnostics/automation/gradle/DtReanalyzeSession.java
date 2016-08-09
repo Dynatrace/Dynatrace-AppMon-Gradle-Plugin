@@ -1,5 +1,9 @@
 package com.dynatrace.diagnostics.automation.gradle;
 
+import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
+import com.dynatrace.sdk.server.exceptions.ServerResponseException;
+import com.dynatrace.sdk.server.servermanagement.ServerManagement;
+import com.dynatrace.sdk.server.sessions.Sessions;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -16,18 +20,24 @@ public class DtReanalyzeSession extends DtServerBase {
 	public void executeTask() throws BuildException {
 		boolean reanalyzeFinished = false;
 
-		if (getEndpoint().reanalyzeSession(getSessionName())) {
-			int timeout = reanalyzeSessionTimeout;
-			reanalyzeFinished = getEndpoint().reanalyzeSessionStatus(getSessionName());
-			while(!reanalyzeFinished && (timeout > 0)) {
-				try {
-					java.lang.Thread.sleep(getReanalyzeSessionPollingInterval());
-					timeout -= getReanalyzeSessionPollingInterval();
-				} catch (InterruptedException e) {
-				}
+		Sessions sessions = new Sessions(this.getDynatraceClient());
 
-				reanalyzeFinished = getEndpoint().reanalyzeSessionStatus(getSessionName());
+		try {
+			if (sessions.reanalyze(this.getSessionName())) {
+				int timeout = reanalyzeSessionTimeout;
+				reanalyzeFinished = sessions.getReanalysisStatus(this.getSessionName());
+				while (!reanalyzeFinished && (timeout > 0)) {
+					try {
+						java.lang.Thread.sleep(getReanalyzeSessionPollingInterval());
+						timeout -= getReanalyzeSessionPollingInterval();
+					} catch (InterruptedException e) {
+					}
+
+					reanalyzeFinished = sessions.getReanalysisStatus(this.getSessionName());
+				}
 			}
+		} catch (ServerConnectionException | ServerResponseException e) {
+			throw new BuildException(e.getMessage(), e);
 		}
 
 		this.setReanalyzeFinished(reanalyzeFinished);

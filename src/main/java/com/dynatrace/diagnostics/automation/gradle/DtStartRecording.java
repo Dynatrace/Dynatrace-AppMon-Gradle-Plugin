@@ -1,5 +1,10 @@
 package com.dynatrace.diagnostics.automation.gradle;
 
+import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
+import com.dynatrace.sdk.server.exceptions.ServerResponseException;
+import com.dynatrace.sdk.server.sessions.Sessions;
+import com.dynatrace.sdk.server.sessions.models.RecordingOption;
+import com.dynatrace.sdk.server.sessions.models.StartRecordingRequest;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -22,12 +27,26 @@ public class DtStartRecording extends DtServerProfileBase {
 
 	@TaskAction
 	public void executeTask() throws BuildException {
-		String sessionName = getEndpoint().startRecording(getProfileName(), getSessionName(), getSessionDescription(), getRecordingOption(), isSessionLocked(), !isAppendTimestamp());
+		Sessions sessions = new Sessions(this.getDynatraceClient());
 
-		log("Started recording on " + getProfileName() + " with SessionName " + sessionName); //$NON-NLS-1$ //$NON-NLS-2$
+		StartRecordingRequest startRecordingRequest = new StartRecordingRequest(this.getProfileName());
+		startRecordingRequest.setPresentableName(this.getSessionName());
+		startRecordingRequest.setDescription(this.getSessionDescription());
+		startRecordingRequest.setRecordingOption(RecordingOption.fromInternal(this.getRecordingOption()));
+		startRecordingRequest.setSessionLocked(this.isSessionLocked());
+		startRecordingRequest.setTimestampAllowed(this.isAppendTimestamp());
 
-		this.setRecordedSessionName(sessionName); //local-scope
-		this.getProjectProperties().setSessionName(sessionName); //global-scope
+		try {
+			String sessionName = sessions.startRecording(startRecordingRequest);
+
+			log("Started recording on " + getProfileName() + " with SessionName " + sessionName); //$NON-NLS-1$ //$NON-NLS-2$
+
+			this.setRecordedSessionName(sessionName); //local-scope
+			this.getProjectProperties().setSessionName(sessionName); //global-scope
+		} catch (ServerConnectionException | ServerResponseException e) {
+			throw new BuildException(e.getMessage(), e);
+		}
+
 	}
 
 	public void setSessionName(String sessionName) {

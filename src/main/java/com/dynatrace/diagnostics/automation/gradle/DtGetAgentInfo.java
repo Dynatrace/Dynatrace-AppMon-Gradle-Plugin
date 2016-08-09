@@ -19,7 +19,7 @@ public class DtGetAgentInfo extends DtServerBase {
 	@TaskAction
 	public void executeTask() throws BuildException {
 		System.out.println("Execute with " + getUsername() + " " + getPassword() + " " + getServerUrl()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-		
+
 		ArrayList<Agent> agents = getEndpoint().getAgents();
 		System.out.println("Set AgentCount to " + String.valueOf(agents.size())); //$NON-NLS-1$
 		this.setAgentCount(agents.size());

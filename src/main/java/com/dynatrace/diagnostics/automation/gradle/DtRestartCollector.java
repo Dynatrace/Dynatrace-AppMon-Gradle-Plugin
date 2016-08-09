@@ -1,5 +1,9 @@
 package com.dynatrace.diagnostics.automation.gradle;
 
+import com.dynatrace.sdk.server.agentsandcollectors.AgentsAndCollectors;
+import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
+import com.dynatrace.sdk.server.exceptions.ServerResponseException;
+import com.dynatrace.sdk.server.servermanagement.ServerManagement;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -9,10 +13,17 @@ public class DtRestartCollector extends DtServerBase {
 
 	@TaskAction
 	public void executeTask() throws BuildException {
-		if(restart)
-			getEndpoint().restartCollector(getCollector());
-		else
-			getEndpoint().shutdownCollector(getCollector());
+		AgentsAndCollectors agentsAndCollectors = new AgentsAndCollectors(this.getDynatraceClient());
+
+		try {
+			if (this.restart) {
+				agentsAndCollectors.restartCollector(this.getCollector());
+			} else {
+				agentsAndCollectors.shutdownCollector(this.getCollector());
+			}
+		} catch (ServerConnectionException | ServerResponseException e) {
+			throw new BuildException(e.getMessage(), e);
+		}
 	}
 
 	public void setRestart(boolean restart) {
