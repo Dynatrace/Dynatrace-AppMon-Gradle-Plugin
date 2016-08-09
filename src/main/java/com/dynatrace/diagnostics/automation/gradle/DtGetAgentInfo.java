@@ -1,9 +1,16 @@
 package com.dynatrace.diagnostics.automation.gradle;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.dynatrace.diagnostics.automation.rest.sdk.entity.Agent;
+import com.dynatrace.sdk.server.agentsandcollectors.AgentsAndCollectors;
+import com.dynatrace.sdk.server.agentsandcollectors.models.AgentInformation;
+import com.dynatrace.sdk.server.agentsandcollectors.models.Agents;
+import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
+import com.dynatrace.sdk.server.exceptions.ServerResponseException;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.impldep.org.apache.maven.model.Build;
 import org.gradle.tooling.BuildException;
 
 public class DtGetAgentInfo extends DtServerBase {
@@ -20,27 +27,35 @@ public class DtGetAgentInfo extends DtServerBase {
 	public void executeTask() throws BuildException {
 		System.out.println("Execute with " + getUsername() + " " + getPassword() + " " + getServerUrl()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 
-		ArrayList<Agent> agents = getEndpoint().getAgents();
-		System.out.println("Set AgentCount to " + String.valueOf(agents.size())); //$NON-NLS-1$
-		this.setAgentCount(agents.size());
+        try {
+            AgentsAndCollectors agentsAndCollectors = new AgentsAndCollectors(this.getDynatraceClient());
+            Agents agentsContainer = agentsAndCollectors.fetchAgents();
+            List<AgentInformation> agents = agentsContainer.getAgents();
 
-		Agent agentForInfo = null;
-		if (infoForAgentByIndex >= 0 && infoForAgentByIndex < agents.size()) {
-			agentForInfo = agents.get(infoForAgentByIndex);
-		}
-		if (infoForAgentByName != null) {
-			for(Agent agent : agents) {
-				if(agent.getName().equalsIgnoreCase(infoForAgentByName))
-					agentForInfo = agent;				
-			}
-		}
+            System.out.println("Set AgentCount to " + String.valueOf(agents.size())); //$NON-NLS-1$
+            this.setAgentCount(agents.size());
 
-		if (agentForInfo != null) {
-			this.setAgentName(agentForInfo.getName());
-			this.setAgentHost(agentForInfo.getHost());
-			this.setAgentProcessId(agentForInfo.getProcessId());
-		}
-	}
+            AgentInformation agentForInfo = null;
+            if (infoForAgentByIndex >= 0 && infoForAgentByIndex < agents.size()) {
+                agentForInfo = agents.get(infoForAgentByIndex);
+            }
+            if (infoForAgentByName != null) {
+                for (AgentInformation agent : agents) {
+                    if (agent.getName().equalsIgnoreCase(infoForAgentByName))
+                        agentForInfo = agent;
+                }
+            }
+
+            if (agentForInfo != null) {
+                this.setAgentName(agentForInfo.getName());
+                this.setAgentHost(agentForInfo.getHost());
+                this.setAgentProcessId(agentForInfo.getProcessId());
+            }
+
+        } catch (ServerConnectionException | ServerResponseException e) {
+            throw new BuildException(e.getMessage(), e);
+        }
+    }
 
 
 	public void setInfoForAgentByIndex(int infoForAgentByIndex) {
