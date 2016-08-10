@@ -19,10 +19,8 @@ public class GradleEntryPoint implements Plugin<Project> {
     public static final String DT_GET_AGENT_INFO = "DtGetAgentInfo";
     public static final String DT_MEMORY_DUMP = "DtMemoryDump";
     public static final String DT_REANALYZE_SESSION = "DtReanalyzeSession";
-    //public static final String DT_REPORT = "DtReport";
     public static final String DT_RESTART_COLLECTOR = "DtRestartCollector";
     public static final String DT_RESTART_SERVER = "DtRestartServer";
-    //public static final String DT_REST_REPORT = "DtRESTReport";
     public static final String DT_SENSOR_PLACEMENT = "DtSensorPlacement";
     public static final String DT_START_RECORDING = "DtStartRecording";
     public static final String DT_START_TEST = "DtStartTest";
@@ -44,10 +42,8 @@ public class GradleEntryPoint implements Plugin<Project> {
         project.getTasks().create(DT_GET_AGENT_INFO, DtGetAgentInfo.class);
         project.getTasks().create(DT_MEMORY_DUMP, DtMemoryDump.class);
         project.getTasks().create(DT_REANALYZE_SESSION, DtReanalyzeSession.class);
-        //project.getTasks().create(DT_REPORT, DtReport.class);
         project.getTasks().create(DT_RESTART_COLLECTOR, DtRestartCollector.class);
         project.getTasks().create(DT_RESTART_SERVER, DtRestartServer.class);
-       // project.getTasks().create(DT_REST_REPORT, DtRESTReport.class);
         project.getTasks().create(DT_SENSOR_PLACEMENT, DtSensorPlacement.class);
         project.getTasks().create(DT_START_RECORDING, DtStartRecording.class);
         project.getTasks().create(DT_START_TEST, DtStartTest.class);
@@ -88,7 +84,6 @@ public class GradleEntryPoint implements Plugin<Project> {
                         }
                     }
                 }
-
             }
         }
     }

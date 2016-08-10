@@ -32,9 +32,12 @@ public class DtStartRecording extends DtServerProfileBase {
 		StartRecordingRequest startRecordingRequest = new StartRecordingRequest(this.getProfileName());
 		startRecordingRequest.setPresentableName(this.getSessionName());
 		startRecordingRequest.setDescription(this.getSessionDescription());
-		startRecordingRequest.setRecordingOption(RecordingOption.fromInternal(this.getRecordingOption()));
 		startRecordingRequest.setSessionLocked(this.isSessionLocked());
 		startRecordingRequest.setTimestampAllowed(this.isAppendTimestamp());
+
+		if (this.getRecordingOption() != null) {
+			startRecordingRequest.setRecordingOption(RecordingOption.fromInternal(this.getRecordingOption()));
+		}
 
 		try {
 			String sessionName = sessions.startRecording(startRecordingRequest);

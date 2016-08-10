@@ -36,12 +36,15 @@ public class DtMemoryDump extends DtAgentBase {
 
 		MemoryDumpJob memoryDumpJob = new MemoryDumpJob();
 		memoryDumpJob.setAgentPattern(new AgentPattern(this.getAgentName(), this.getHostName(), this.getProcessId()));
-		memoryDumpJob.setStoredSessionType(StoredSessionType.fromInternal(this.getDumpType())); /* TODO FIXME - dump type is wrong? use new values with prefixes! */
 		memoryDumpJob.setSessionLocked(this.isSessionLocked());
 		memoryDumpJob.setCaptureStrings(this.getCaptureStrings());
 		memoryDumpJob.setCapturePrimitives(this.getCapturePrimitives());
 		memoryDumpJob.setPostProcessed(this.getAutoPostProcess());
 		memoryDumpJob.setDogc(this.getDoGc());
+
+        if (this.getDumpType() != null) {
+            memoryDumpJob.setStoredSessionType(StoredSessionType.fromInternal(this.getDumpType())); /* TODO FIXME - dump type is wrong? use new values with prefixes! */
+        }
 
 		try {
 			String memoryDumpLocation = memoryDumps.createMemoryDumpJob(this.getProfileName(), memoryDumpJob);
@@ -53,7 +56,7 @@ public class DtMemoryDump extends DtAgentBase {
 
 			try {
 				memoryDump = uriPathArray[uriPathArray.length - 1];
-			} catch (ArrayIndexOutOfBoundsException e) {
+			} catch (Exception e) {
 				throw new BuildException("Malformed memory dump response", new Exception()); //$NON-NLS-1$
 			}
 

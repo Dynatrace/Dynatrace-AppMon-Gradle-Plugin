@@ -18,9 +18,12 @@ public class DtStorePurePaths extends DtServerProfileBase{
 		Sessions sessions = new Sessions(this.getDynatraceClient());
 
 		StoreSessionRequest storeSessionRequest = new StoreSessionRequest(this.getProfileName());
-		storeSessionRequest.setRecordingOption(RecordingOption.fromInternal(this.getRecordingOption()));
 		storeSessionRequest.setSessionLocked(this.isSessionLocked());
 		storeSessionRequest.setAppendTimestamp(this.isAppendTimestamp());
+		
+		if (this.getRecordingOption() != null) {
+			storeSessionRequest.setRecordingOption(RecordingOption.fromInternal(this.getRecordingOption()));
+		}
 
 		try {
 			sessions.store(storeSessionRequest);
