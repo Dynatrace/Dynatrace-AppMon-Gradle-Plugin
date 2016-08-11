@@ -1,5 +1,18 @@
-dependencies{
-	compileAndIncludeInJar project(":automation.common")
+plugins {
+    id 'java-gradle-plugin'
+}
+
+gradlePlugin {
+    plugins {
+        simplePlugin {
+            id = 'dynatrace-gradle-plugin'
+            implementationClass = 'com.dynatrace.diagnostics.automation.gradle.GradleEntryPoint'
+        }
+    }
+}
+
+dependencies {
+	compileAndIncludeInJar project(':automation.common')
 	compileAndIncludeInJar fileTree(dir: '../lib', include: '*.jar')
 	
 	compile gradleApi()
