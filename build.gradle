@@ -1,0 +1,70 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+		
+		maven {
+			url "https://plugins.gradle.org/m2/"
+		}
+    }
+	
+    dependencies {
+        /* required for jar shadowing */
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3+'
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+/* IDE projects generation */
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+/* java configuration */
+apply plugin: 'java'
+
+group = 'com.dynatrace.diagnostics.automation'
+version = '6.5.0'
+
+compileJava {
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
+}
+
+/* shadowJar */
+apply plugin: 'com.github.johnrengelman.shadow'
+
+configurations {
+    compileAndIncludeInJar
+    compile.extendsFrom(configurations.compileAndIncludeInJar)
+}
+	
+shadowJar {
+    configurations = [ project.configurations.compileAndIncludeInJar ]
+	classifier = null
+}
+
+build.finalizedBy shadowJar
+
+/* gradle plugin development configuration */
+apply plugin: 'java-gradle-plugin'
+
+gradlePlugin {
+    plugins {
+        simplePlugin {
+            id = 'dynatrace-gradle-plugin'
+            implementationClass = 'com.dynatrace.diagnostics.automation.gradle.GradleEntryPoint'
+        }
+    }
+}
+
+/* compile and testing dependencies */
+dependencies {
+	compileAndIncludeInJar fileTree(dir: 'lib', include: '*.jar')
+	compile gradleApi()
+	
+	testCompile 'junit:junit:4.12'
+}
