@@ -9,79 +9,111 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public abstract class DtServerBase extends GradleTask {
+    private static final String PROTOCOL_WITHOUT_SSL = "http";
+    private static final String PROTOCOL_WITH_SSL = "https";
 
-	private String username = null;
-	private String password = null;
-	private String serverUrl = null;
+    /**
+     * Use unlimited connection timeout
+     */
+    private static final int CONNECTION_TIMEOUT = 0;
 
-	private DynatraceClient dynatraceClient;
+    private String username = null;
+    private String password = null;
+    private String serverUrl = null;
 
-	private static final String PROTOCOL_WITHOUT_SSL = "http";
-	private static final String PROTOCOL_WITH_SSL = "https";
+    /**
+     * Ignore SSL errors
+     */
+    private Boolean ignoreSSLErrors = null;
 
-	/* TODO: default values for BasicServerConfiguration should be better-looking */
-	private BasicServerConfiguration buildServerConfiguration() {
-		try {
-			URIBuilder uriBuilder = new URIBuilder(this.getServerUrl());
-			URI uri = uriBuilder.build();
+    private DynatraceClient dynatraceClient;
 
-			String protocol = uri.getScheme();
-			String host = uri.getHost();
-			int port = uri.getPort();
-			boolean ssl = BasicServerConfiguration.DEFAULT_SSL;
+    private BasicServerConfiguration buildServerConfiguration() {
+        try {
+            URIBuilder uriBuilder = new URIBuilder(this.getServerUrl());
+            URI uri = uriBuilder.build();
 
-			if (protocol != null && (protocol.equals(PROTOCOL_WITH_SSL) || protocol.equals(PROTOCOL_WITHOUT_SSL))) {
-				ssl = protocol.equals(PROTOCOL_WITH_SSL);
-			} else {
-				throw new URISyntaxException(protocol, "Invalid protocol name in serverUrl"); //maybe something better?
-			}
+            String protocol = uri.getScheme();
+            String host = uri.getHost();
+            int port = uri.getPort();
+            boolean ssl = BasicServerConfiguration.DEFAULT_SSL;
 
-			return new BasicServerConfiguration(this.getUsername(), this.getPassword(), ssl, host, port, false, BasicServerConfiguration.DEFAULT_CONNECTION_TIMEOUT);
-		} catch (URISyntaxException e) {
-			throw new InvalidUserDataException(e.getMessage(), e); //? proper way?
-		}
-	}
+            if (protocol != null && (protocol.equals(PROTOCOL_WITH_SSL) || protocol.equals(PROTOCOL_WITHOUT_SSL))) {
+                ssl = protocol.equals(PROTOCOL_WITH_SSL);
+            } else {
+                throw new URISyntaxException(protocol, "Invalid protocol name in serverUrl");
+            }
 
-	public DynatraceClient getDynatraceClient() throws InvalidUserDataException {
-		if (this.dynatraceClient == null) {
-			this.dynatraceClient = new DynatraceClient(this.buildServerConfiguration());
-		}
+            return new BasicServerConfiguration(this.getUsername(), this.getPassword(), ssl, host, port, !this.getIgnoreSSLErrors(), CONNECTION_TIMEOUT);
+        } catch (URISyntaxException e) {
+            throw new InvalidUserDataException(e.getMessage(), e);
+        }
+    }
 
-		return this.dynatraceClient;
-	}
+    public DynatraceClient getDynatraceClient() throws InvalidUserDataException {
+        if (this.dynatraceClient == null) {
+            this.dynatraceClient = new DynatraceClient(this.buildServerConfiguration());
+        }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
-	public String getUsername() {
-		if(username == null) {
-			String dtUsername = this.getProjectProperties().getUsername(); //$NON-NLS-1$
+        return this.dynatraceClient;
+    }
 
-			if(dtUsername != null && dtUsername.length() > 0)
-				username = dtUsername;
-		}
-		return username;
-	}
-	public void setPassword(String password) {
-		this.password = password;
-	}
-	public String getPassword() {
-		if(password == null) {
-			String dtPassword = this.getProjectProperties().getPassword(); //$NON-NLS-1$
-			if(dtPassword != null && dtPassword.length() > 0)
-				password = dtPassword;
-		}
-		return password;
-	}
-	public void setServerUrl(String serverUrl) {
-		this.serverUrl = serverUrl;
-	}
-	public String getServerUrl() {
-		if(serverUrl == null) {
-			String dtServerUrl = this.getProjectProperties().getServerUrl(); //$NON-NLS-1$
-			if(dtServerUrl != null && dtServerUrl.length() > 0)
-				serverUrl = dtServerUrl;
-		}
-		return serverUrl;
-	}
+    public String getUsername() {
+        if (username == null) {
+            String dtUsername = this.getProjectProperties().getUsername(); //$NON-NLS-1$
+
+            if (dtUsername != null && dtUsername.length() > 0)
+                username = dtUsername;
+        }
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        if (password == null) {
+            String dtPassword = this.getProjectProperties().getPassword(); //$NON-NLS-1$
+            if (dtPassword != null && dtPassword.length() > 0)
+                password = dtPassword;
+        }
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getServerUrl() {
+        if (serverUrl == null) {
+            String dtServerUrl = this.getProjectProperties().getServerUrl(); //$NON-NLS-1$
+            if (dtServerUrl != null && dtServerUrl.length() > 0)
+                serverUrl = dtServerUrl;
+        }
+        return serverUrl;
+    }
+
+    public void setServerUrl(String serverUrl) {
+        this.serverUrl = serverUrl;
+    }
+
+    public Boolean getIgnoreSSLErrors() {
+        if (this.ignoreSSLErrors == null) {
+            Boolean dtIgnoreSSLErrorsProperty = this.getProjectProperties().getIgnoreSSLErrors();
+
+            if (dtIgnoreSSLErrorsProperty != null) {
+                this.ignoreSSLErrors = dtIgnoreSSLErrorsProperty.booleanValue();
+            } else {
+                // malformed property value, assign default value
+                this.ignoreSSLErrors = Boolean.TRUE;
+            }
+        }
+
+        return this.ignoreSSLErrors;
+    }
+
+    public void setIgnoreSSLErrors(boolean ignoreSslErrors) {
+        this.ignoreSSLErrors = ignoreSslErrors;
+    }
 }

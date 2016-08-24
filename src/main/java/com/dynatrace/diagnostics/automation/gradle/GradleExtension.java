@@ -7,6 +7,7 @@ public class GradleExtension {
     private String serverUrl;
     private String profile;
     private String sessionName;
+    private Boolean ignoreSSLErrors;
 
     /* getters and setters for "dynaTrace" configuration properties */
     public String getBaseDir() {
@@ -54,4 +55,13 @@ public class GradleExtension {
     public void setSessionName(String sessionName) {
         this.sessionName = sessionName;
     }
+
+    public Boolean getIgnoreSSLErrors() {
+        return ignoreSSLErrors;
+    }
+
+    public void setIgnoreSSLErrors(Boolean ignoreSSLErrors) {
+        this.ignoreSSLErrors = ignoreSSLErrors;
+    }
+
 }
