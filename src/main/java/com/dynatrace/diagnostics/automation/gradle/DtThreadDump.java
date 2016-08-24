@@ -32,7 +32,8 @@ public class DtThreadDump extends DtAgentBase {
 
 			int timeout = waitForDumpTimeout;
 
-			boolean dumpFinished = resourceDumps.getThreadDumpStatus(this.getProfileName(), threadDump).isSuccessful();
+			Boolean dumpStatusResult = resourceDumps.getThreadDumpStatus(this.getProfileName(), threadDump).getResultValue();
+			boolean dumpFinished = (dumpStatusResult != null) && (dumpStatusResult);
 			while (!dumpFinished && (timeout > 0)) {
 				try {
 					java.lang.Thread.sleep(waitForDumpPollingInterval);
@@ -40,7 +41,8 @@ public class DtThreadDump extends DtAgentBase {
 				} catch (InterruptedException e) {
 				}
 
-				dumpFinished = resourceDumps.getThreadDumpStatus(this.getProfileName(), threadDump).isSuccessful();
+				dumpStatusResult = resourceDumps.getThreadDumpStatus(this.getProfileName(), threadDump).getResultValue();
+				dumpFinished = (dumpStatusResult != null) && (dumpStatusResult);
 			}
 
 			this.setDumpFinished(dumpFinished);

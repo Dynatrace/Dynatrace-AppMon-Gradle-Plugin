@@ -7,6 +7,7 @@ import com.dynatrace.sdk.server.memorydumps.models.AgentPattern;
 import com.dynatrace.sdk.server.memorydumps.models.JobState;
 import com.dynatrace.sdk.server.memorydumps.models.MemoryDumpJob;
 import com.dynatrace.sdk.server.memorydumps.models.StoredSessionType;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -83,7 +84,9 @@ public class DtMemoryDump extends DtAgentBase {
 			}
 
 			this.setDumpFinished(dumpFinished);
-		} catch (ServerConnectionException | ServerResponseException e) {
+		} catch (ServerResponseException e) {
+			this.log(String.format("Cannot take memory dump: %s", e.getMessage()), LogLevel.ERROR);
+		} catch (ServerConnectionException e) {
 			throw new BuildException(e.getMessage(), e);
 		} catch (URISyntaxException e) {
 			throw new BuildException(e.getMessage(), e);
