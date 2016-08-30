@@ -1,90 +1,68 @@
+/*
+ * Dynatrace Gradle Plugin
+ * Copyright (c) 2008-2016, DYNATRACE LLC
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *  Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *  Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *  Neither the name of the dynaTrace software nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+ * SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ */
+
 package com.dynatrace.diagnostics.automation.gradle;
 
-import org.codehaus.groovy.runtime.MethodClosure;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.tasks.TaskContainer;
 
 /**
- * This class implements "startup class" for Gradle plugin, defines tasks and properties (via extension)
- *
- * @author Lukasz Hamerszmidt
+ * "Startup class" for Gradle plugin, defines tasks and properties (via extension)
  */
 public class GradleEntryPoint implements Plugin<Project> {
-    public static final String DT_EXTENSION = "dynaTrace";
 
-    public static final String DT_ACTIVATE_CONFIGURATION = "DtActivateConfiguration";
-    public static final String DT_CLEAR_SESSION = "DtClearSession";
-    public static final String DT_ENABLE_PROFILE = "DtEnableProfile";
-    public static final String DT_GET_AGENT_INFO = "DtGetAgentInfo";
-    public static final String DT_MEMORY_DUMP = "DtMemoryDump";
-    public static final String DT_REANALYZE_SESSION = "DtReanalyzeSession";
-    public static final String DT_RESTART_COLLECTOR = "DtRestartCollector";
-    public static final String DT_RESTART_SERVER = "DtRestartServer";
-    public static final String DT_SENSOR_PLACEMENT = "DtSensorPlacement";
-    public static final String DT_START_RECORDING = "DtStartRecording";
-    public static final String DT_START_TEST = "DtStartTest";
-    public static final String DT_STOP_RECORDING = "DtStopRecording";
-    public static final String DT_STORE_PURE_PATHS = "DtStorePurePaths";
-    public static final String DT_THREAD_DUMP = "DtThreadDump";
-
-    public static final String DT_INJECT_AGENT = "DtInjectAgent";
-
+    /**
+     * Defines available tasks
+     *
+     * @param project - gradle project
+     */
     @Override
     public void apply(Project project) {
-        //properties registration
-        project.getExtensions().create(DT_EXTENSION, GradleExtension.class);
+        /* properties registration */
+        project.getExtensions().create(GradleExtension.NAME, GradleExtension.class);
 
-        //tasks registration
-        project.getTasks().create(DT_ACTIVATE_CONFIGURATION, DtActivateConfiguration.class);
-        project.getTasks().create(DT_CLEAR_SESSION, DtClearSession.class);
-        project.getTasks().create(DT_ENABLE_PROFILE, DtEnableProfile.class);
-        project.getTasks().create(DT_GET_AGENT_INFO, DtGetAgentInfo.class);
-        project.getTasks().create(DT_MEMORY_DUMP, DtMemoryDump.class);
-        project.getTasks().create(DT_REANALYZE_SESSION, DtReanalyzeSession.class);
-        project.getTasks().create(DT_RESTART_COLLECTOR, DtRestartCollector.class);
-        project.getTasks().create(DT_RESTART_SERVER, DtRestartServer.class);
-        project.getTasks().create(DT_SENSOR_PLACEMENT, DtSensorPlacement.class);
-        project.getTasks().create(DT_START_RECORDING, DtStartRecording.class);
-        project.getTasks().create(DT_START_TEST, DtStartTest.class);
-        project.getTasks().create(DT_STOP_RECORDING, DtStopRecording.class);
-        project.getTasks().create(DT_STORE_PURE_PATHS, DtStorePurePaths.class);
-        project.getTasks().create(DT_THREAD_DUMP, DtThreadDump.class);
-        project.getTasks().create(DT_INJECT_AGENT, DtInjectAgent.class);
+        /* tasks registration */
+        TaskContainer tasks = project.getTasks();
 
-        //inject additional dependencies
-        project.afterEvaluate(new MethodClosure(this, "pluginConfiguration"));
-    }
-
-    private void pluginConfiguration(Project proj) {
-        Task injectAgentAsSimpleTask = proj.getTasks().getByName(DT_INJECT_AGENT);
-
-        //inject task dependency
-        if (injectAgentAsSimpleTask != null) {
-            if (injectAgentAsSimpleTask instanceof DtInjectAgent) {
-                DtInjectAgent dtInjectAgent = (DtInjectAgent) injectAgentAsSimpleTask;
-
-                //DtStartTest as dependency
-                Task dtStartTest = proj.getTasks().getByName(DT_START_TEST);
-
-                if (dtStartTest != null) {
-                    dtInjectAgent.dependsOn(dtStartTest);
-                }
-
-                //configure injection
-                String injectionTaskName = dtInjectAgent.getInjectionTaskName();
-                boolean isInjectionEnabled = dtInjectAgent.isInjectionEnabled();
-
-                if (isInjectionEnabled) {
-                    if (injectionTaskName != null) {
-                        Task taskToInjectTo = proj.getTasks().getByName(injectionTaskName);
-
-                        if (taskToInjectTo != null) {
-                            taskToInjectTo.dependsOn(injectAgentAsSimpleTask);
-                        }
-                    }
-                }
-            }
-        }
+        tasks.create(DtActivateConfiguration.NAME, DtActivateConfiguration.class);
+        tasks.create(DtClearSession.NAME, DtClearSession.class);
+        tasks.create(DtEnableProfile.NAME, DtEnableProfile.class);
+        tasks.create(DtGetAgentInfo.NAME, DtGetAgentInfo.class);
+        tasks.create(DtMemoryDump.NAME, DtMemoryDump.class);
+        tasks.create(DtReanalyzeSession.NAME, DtReanalyzeSession.class);
+        tasks.create(DtRestartCollector.NAME, DtRestartCollector.class);
+        tasks.create(DtRestartServer.NAME, DtRestartServer.class);
+        tasks.create(DtSensorPlacement.NAME, DtSensorPlacement.class);
+        tasks.create(DtStartRecording.NAME, DtStartRecording.class);
+        tasks.create(DtStartTest.NAME, DtStartTest.class);
+        tasks.create(DtStopRecording.NAME, DtStopRecording.class);
+        tasks.create(DtStorePurePaths.NAME, DtStorePurePaths.class);
+        tasks.create(DtThreadDump.NAME, DtThreadDump.class);
     }
 }

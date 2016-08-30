@@ -1,3 +1,31 @@
+/*
+ * Dynatrace Gradle Plugin
+ * Copyright (c) 2008-2016, DYNATRACE LLC
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *  Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *  Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *  Neither the name of the dynaTrace software nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+ * SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ */
+
 package com.dynatrace.diagnostics.automation.gradle;
 
 import com.dynatrace.sdk.server.agentsandcollectors.AgentsAndCollectors;
@@ -5,48 +33,53 @@ import com.dynatrace.sdk.server.agentsandcollectors.models.AgentInformation;
 import com.dynatrace.sdk.server.agentsandcollectors.models.Agents;
 import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
 import com.dynatrace.sdk.server.exceptions.ServerResponseException;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
 import java.util.List;
 
+/**
+ * Gradle task for getting information about agent
+ */
 public class DtGetAgentInfo extends DtServerBase {
-	private int infoForAgentByIndex = -1;
-	private String infoForAgentByName;
 
-	//properties TODO - add more items?
-	private String agentName = null;
-	private String agentHost = null;
-	private int agentProcessId;
-	private int agentCount;
+    public static final String NAME = "DtGetAgentInfo";
 
-	@TaskAction
-	public void executeTask() throws BuildException {
-		System.out.println("Execute with " + getUsername() + " " + getPassword() + " " + getServerUrl()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+    private int infoForAgentByIndex = -1;
+    private String infoForAgentByName;
+
+    private String agentName;
+    private String agentHost;
+    private int agentProcessId;
+    private int agentCount;
+
+    /**
+     * Executes Gradle task
+     *
+     * @throws BuildException whenever connecting to the server, parsing a response or execution fails
+     */
+    @TaskAction
+    public void executeTask() throws BuildException {
+        this.getLogger().log(LogLevel.INFO, String.format("Execute with %s %s %s", this.getUsername(), this.getPassword(), this.getServerUrl()));
+
+        AgentsAndCollectors agentsAndCollectors = new AgentsAndCollectors(this.getDynatraceClient());
 
         try {
-            AgentsAndCollectors agentsAndCollectors = new AgentsAndCollectors(this.getDynatraceClient());
             Agents agentsContainer = agentsAndCollectors.fetchAgents();
-            List<AgentInformation> agents = agentsContainer.getAgents();
+            List<AgentInformation> agentsList = agentsContainer.getAgents();
 
-            System.out.println("Set AgentCount to " + String.valueOf(agents.size())); //$NON-NLS-1$
-            this.setAgentCount(agents.size());
+            this.getLogger().log(LogLevel.INFO, String.format("Set agentCount to %s", String.valueOf(agentsList.size())));
+            this.agentCount = agentsList.size();
 
-            AgentInformation agentForInfo = null;
-            if (infoForAgentByIndex >= 0 && infoForAgentByIndex < agents.size()) {
-                agentForInfo = agents.get(infoForAgentByIndex);
-            }
-            if (infoForAgentByName != null) {
-                for (AgentInformation agent : agents) {
-                    if (agent.getName().equalsIgnoreCase(infoForAgentByName))
-                        agentForInfo = agent;
-                }
-            }
+            AgentInformation agent = this.getAgentInformationByNameOrAtIndex(agentsList, this.infoForAgentByName, this.infoForAgentByIndex);
 
-            if (agentForInfo != null) {
-                this.setAgentName(agentForInfo.getName());
-                this.setAgentHost(agentForInfo.getHost());
-                this.setAgentProcessId(agentForInfo.getProcessId());
+            if (agent != null) {
+                this.getLogger().log(LogLevel.INFO, String.format("Return agent info: %s/%s/%s", agent.getName(), agent.getHost(), agent.getProcessId()));
+
+                this.agentName = agent.getName();
+                this.agentHost = agent.getHost();
+                this.agentProcessId = agent.getProcessId();
             }
 
         } catch (ServerConnectionException | ServerResponseException e) {
@@ -54,53 +87,90 @@ public class DtGetAgentInfo extends DtServerBase {
         }
     }
 
+    /**
+     * Returns agent information by given name and index found in list
+     * <p>
+     * If agent with given name was found, returns it, otherwise looks for agent at given index
+     *
+     * @param agents - list containing {@link AgentInformation}
+     * @param name   - agent name to find in given list
+     * @param index  - agent index to find in given list
+     * @return {@link AgentInformation} that matches given index or name if it's found, otherwise returns {@code null}
+     */
+    private AgentInformation getAgentInformationByNameOrAtIndex(List<AgentInformation> agents, String name, int index) {
+        AgentInformation agentInformation = this.getAgentInformationByName(agents, name);
 
-	public void setInfoForAgentByIndex(int infoForAgentByIndex) {
-		this.infoForAgentByIndex = infoForAgentByIndex;
-	}
+        if (agentInformation != null) {
+            return agentInformation;
+        }
 
-	public int getInfoForAgentByIndex() {
-		return infoForAgentByIndex;
-	}
+        return this.getAgentInformationAtIndex(agents, index);
+    }
 
-	public void setInfoForAgentByName(String infoForAgentByName) {
-		this.infoForAgentByName = infoForAgentByName;
-	}
+    /**
+     * Returns agent information by index found in given list
+     *
+     * @param agents - list containing {@link AgentInformation}
+     * @param index  - agent index to find in given list
+     * @return {@link AgentInformation} that matches given index if it's found, otherwise returns {@code null}
+     */
+    private AgentInformation getAgentInformationAtIndex(List<AgentInformation> agents, int index) {
+        if (index >= 0 && index < agents.size()) {
+            return agents.get(index);
+        }
 
-	public String getInfoForAgentByName() {
-		return infoForAgentByName;
-	}
+        return null;
+    }
 
-	//properties
-	public String getAgentName() {
-		return agentName;
-	}
+    /**
+     * Returns agent information by name found in given list
+     *
+     * @param agents - list containing {@link AgentInformation}
+     * @param name   - agent name to find in given list
+     * @return {@link AgentInformation} that matches given name if it's found, otherwise returns {@code null}
+     */
+    private AgentInformation getAgentInformationByName(List<AgentInformation> agents, String name) {
+        if (name != null) {
+            for (AgentInformation agent : agents) {
+                if (agent.getName().equalsIgnoreCase(name)) {
+                    return agent;
+                }
+            }
+        }
 
-	private void setAgentName(String agentName) {
-		this.agentName = agentName;
-	}
+        return null;
+    }
 
-	public String getAgentHost() {
-		return agentHost;
-	}
+    public int getInfoForAgentByIndex() {
+        return infoForAgentByIndex;
+    }
 
-	private void setAgentHost(String agentHost) {
-		this.agentHost = agentHost;
-	}
+    public void setInfoForAgentByIndex(int infoForAgentByIndex) {
+        this.infoForAgentByIndex = infoForAgentByIndex;
+    }
 
-	public int getAgentProcessId() {
-		return agentProcessId;
-	}
+    public String getInfoForAgentByName() {
+        return infoForAgentByName;
+    }
 
-	private void setAgentProcessId(int agentProcessId) {
-		this.agentProcessId = agentProcessId;
-	}
+    public void setInfoForAgentByName(String infoForAgentByName) {
+        this.infoForAgentByName = infoForAgentByName;
+    }
 
-	public int getAgentCount() {
-		return agentCount;
-	}
+    //properties
+    public String getAgentName() {
+        return agentName;
+    }
 
-	private void setAgentCount(int agentCount) {
-		this.agentCount = agentCount;
-	}
+    public String getAgentHost() {
+        return agentHost;
+    }
+
+    public int getAgentProcessId() {
+        return agentProcessId;
+    }
+
+    public int getAgentCount() {
+        return agentCount;
+    }
 }

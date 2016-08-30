@@ -1,5 +1,34 @@
+/*
+ * Dynatrace Gradle Plugin
+ * Copyright (c) 2008-2016, DYNATRACE LLC
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *  Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *  Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *  Neither the name of the dynaTrace software nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+ * SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ */
+
 package com.dynatrace.diagnostics.automation.gradle;
 
+import com.dynatrace.diagnostics.automation.util.DtUtil;
 import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
 import com.dynatrace.sdk.server.exceptions.ServerResponseException;
 import com.dynatrace.sdk.server.memorydumps.MemoryDumps;
@@ -14,164 +43,173 @@ import org.gradle.tooling.BuildException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+/**
+ * Gradle task for taking memory dump
+ */
 public class DtMemoryDump extends DtAgentBase {
-	private String dumpType;
-	private boolean sessionLocked;
+    public static final String NAME = "DtMemoryDump";
 
-	private int waitForDumpTimeout = 60000;
-	private int waitForDumpPollingInterval = 5000;
-	private boolean doGc;
-	private boolean autoPostProcess;
-	private boolean capturePrimitives;
-	private boolean captureStrings;
+    private String dumpType = "memdump_simple";
+    private boolean sessionLocked = false;
 
-	//properties
-	private String dumpName = null;
-	private boolean dumpFinished = false;
+    private int waitForDumpTimeout = 60000;
+    private int waitForDumpPollingInterval = 5000;
+    private boolean doGc = false;
+    private boolean autoPostProcess = false;
+    private boolean capturePrimitives = false;
+    private boolean captureStrings = false;
 
-	@TaskAction
-	public void executeTask() throws BuildException {
-		System.out.println("Creating Memory Dump for " + getProfileName() + "-" + getAgentName() + "-" + getHostName() + "-" + getProcessId()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+    //properties
+    private String dumpName = null;
+    private boolean dumpFinished = false;
 
-		MemoryDumps memoryDumps = new MemoryDumps(this.getDynatraceClient());
+    /**
+     * Executes gradle task
+     *
+     * @throws BuildException whenever connecting to the server, parsing a response or execution fails
+     */
+    @TaskAction
+    public void executeTask() throws BuildException {
+        this.getLogger().log(LogLevel.INFO, String.format("Creating Memory Dump for %s-%s-%s-%d", this.getProfileName(), this.getAgentName(), this.getHostName(), this.getProcessId()));
 
-		MemoryDumpJob memoryDumpJob = new MemoryDumpJob();
-		memoryDumpJob.setAgentPattern(new AgentPattern(this.getAgentName(), this.getHostName(), this.getProcessId()));
-		memoryDumpJob.setSessionLocked(this.isSessionLocked());
-		memoryDumpJob.setCaptureStrings(this.getCaptureStrings());
-		memoryDumpJob.setCapturePrimitives(this.getCapturePrimitives());
-		memoryDumpJob.setPostProcessed(this.getAutoPostProcess());
-		memoryDumpJob.setDogc(this.getDoGc());
+        MemoryDumps memoryDumps = new MemoryDumps(this.getDynatraceClient());
+
+        MemoryDumpJob memoryDumpJob = new MemoryDumpJob();
+        memoryDumpJob.setAgentPattern(new AgentPattern(this.getAgentName(), this.getHostName(), this.getProcessId()));
+        memoryDumpJob.setSessionLocked(this.isSessionLocked());
+        memoryDumpJob.setCaptureStrings(this.getCaptureStrings());
+        memoryDumpJob.setCapturePrimitives(this.getCapturePrimitives());
+        memoryDumpJob.setPostProcessed(this.getAutoPostProcess());
+        memoryDumpJob.setDogc(this.getDoGc());
 
         if (this.getDumpType() != null) {
-            memoryDumpJob.setStoredSessionType(StoredSessionType.fromInternal(this.getDumpType())); /* TODO FIXME - dump type is wrong? use new values with prefixes! */
+            memoryDumpJob.setStoredSessionType(StoredSessionType.fromInternal(this.getDumpType()));
         }
 
-		try {
-			String memoryDumpLocation = memoryDumps.createMemoryDumpJob(this.getProfileName(), memoryDumpJob);
+        try {
+            String memoryDumpLocation = memoryDumps.createMemoryDumpJob(this.getProfileName(), memoryDumpJob);
+            this.dumpName = this.extractMemoryDumpNameFromUrl(memoryDumpLocation);
 
-			URI uri = new URI(memoryDumpLocation);
-			String[] uriPathArray = uri.getPath().split("/");
+            if (DtUtil.isEmpty(this.dumpName)) {
+                throw new BuildException("Memory Dump wasn't taken", new Exception());
+            }
 
-			String memoryDump = null;
+            JobState memoryDumpJobState = memoryDumps.getMemoryDumpJob(this.getProfileName(), this.dumpName).getState();
+            this.dumpFinished = memoryDumpJobState.equals(JobState.FINISHED) || memoryDumpJobState.equals(JobState.FAILED);
 
-			try {
-				memoryDump = uriPathArray[uriPathArray.length - 1];
-			} catch (Exception e) {
-				throw new BuildException("Malformed memory dump response", new Exception()); //$NON-NLS-1$
-			}
+            int timeout = this.waitForDumpTimeout;
 
-			this.setDumpName(memoryDump);
+            while (!dumpFinished && (timeout > 0)) {
+                try {
+                    Thread.sleep(this.waitForDumpPollingInterval);
+                    timeout -= this.waitForDumpPollingInterval;
+                } catch (InterruptedException e) {
+                    /* don't break execution */
+                }
 
-			if (memoryDump == null || memoryDump.length() == 0) {
-				throw new BuildException("Memory Dump wasn't taken", new Exception()); //$NON-NLS-1$
-			}
+                memoryDumpJobState = memoryDumps.getMemoryDumpJob(this.getProfileName(), this.dumpName).getState();
+                this.dumpFinished = memoryDumpJobState.equals(JobState.FINISHED) || memoryDumpJobState.equals(JobState.FAILED);
+            }
+        } catch (ServerResponseException e) {
+            this.getLogger().log(LogLevel.ERROR, String.format("Cannot take memory dump: %s", e.getMessage()));
+        } catch (ServerConnectionException | IllegalArgumentException e) {
+            throw new BuildException(e.getMessage(), e);
+        }
+    }
 
-			int timeout = waitForDumpTimeout;
+    /**
+     * Extracts memory dump name from the dump url provided by {@link MemoryDumps#createMemoryDumpJob} method
+     *
+     * @param url - url of the memory dump
+     * @return name of the dump required by {@link MemoryDumps#getMemoryDumpJob}
+     * @throws IllegalArgumentException whenever given url isn't valid
+     */
+    private String extractMemoryDumpNameFromUrl(String url) throws IllegalArgumentException {
+        try {
+            URI location = new URI(url);
 
-			JobState memoryDumpJobState = memoryDumps.getMemoryDumpJob(this.getProfileName(), memoryDump).getState();
-			boolean dumpFinished = memoryDumpJobState.equals(JobState.FINISHED) || memoryDumpJobState.equals(JobState.FAILED);
+            String[] pathArray = location.getPath().split("/");
 
-			while (!dumpFinished && (timeout > 0)) {
-				try {
-					java.lang.Thread.sleep(waitForDumpPollingInterval);
-					timeout -= waitForDumpPollingInterval;
-				} catch (InterruptedException e) {
-				}
+            if (pathArray.length <= 0) {
+                throw new IllegalArgumentException("Missing memory dump name", new Exception());
+            }
 
-				memoryDumpJobState = memoryDumps.getMemoryDumpJob(this.getProfileName(), memoryDump).getState();
-				dumpFinished = memoryDumpJobState.equals(JobState.FINISHED) || memoryDumpJobState.equals(JobState.FAILED);
-			}
+            return pathArray[pathArray.length - 1];
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Malformed memory dump name", new Exception());
+        }
+    }
 
-			this.setDumpFinished(dumpFinished);
-		} catch (ServerResponseException e) {
-			this.log(String.format("Cannot take memory dump: %s", e.getMessage()), LogLevel.ERROR);
-		} catch (ServerConnectionException e) {
-			throw new BuildException(e.getMessage(), e);
-		} catch (URISyntaxException e) {
-			throw new BuildException(e.getMessage(), e);
-		}
-	}
+    private boolean getCaptureStrings() {
+        return captureStrings;
+    }
 
-	private boolean getCaptureStrings() {
-		return captureStrings;
-	}
+    public void setCaptureStrings(boolean captureStrings) {
+        this.captureStrings = captureStrings;
+    }
 
-	private boolean getCapturePrimitives() {
-		return capturePrimitives;
-	}
+    private boolean getCapturePrimitives() {
+        return capturePrimitives;
+    }
 
-	private boolean getAutoPostProcess() {
-		return autoPostProcess;
-	}
+    public void setCapturePrimitives(boolean capturePrimitives) {
+        this.capturePrimitives = capturePrimitives;
+    }
 
-	private boolean getDoGc() {
-		return doGc;
-	}
+    private boolean getAutoPostProcess() {
+        return autoPostProcess;
+    }
 
-	public void setDoGc(boolean doGc) {
-		this.doGc = doGc;
-	}
+    public void setAutoPostProcess(boolean autoPostProcess) {
+        this.autoPostProcess = autoPostProcess;
+    }
 
-	public void setAutoPostProcess(boolean autoPostProcess) {
-		this.autoPostProcess = autoPostProcess;
-	}
+    private boolean getDoGc() {
+        return doGc;
+    }
 
-	public void setCapturePrimitives(boolean capturePrimitives) {
-		this.capturePrimitives = capturePrimitives;
-	}
+    public void setDoGc(boolean doGc) {
+        this.doGc = doGc;
+    }
 
-	public void setCaptureStrings(boolean captureStrings) {
-		this.captureStrings = captureStrings;
-	}
+    public String getDumpType() {
+        return dumpType;
+    }
 
-	public void setDumpType(String dumpType) {
-		this.dumpType = dumpType;
-	}
+    public void setDumpType(String dumpType) {
+        this.dumpType = dumpType;
+    }
 
-	public String getDumpType() {
-		return dumpType;
-	}
+    public boolean isSessionLocked() {
+        return sessionLocked;
+    }
 
-	public void setSessionLocked(boolean sessionLocked) {
-		this.sessionLocked = sessionLocked;
-	}
+    public void setSessionLocked(boolean sessionLocked) {
+        this.sessionLocked = sessionLocked;
+    }
 
-	public boolean isSessionLocked() {
-		return sessionLocked;
-	}
+    public int getWaitForDumpTimeout() {
+        return waitForDumpTimeout;
+    }
 
-	public void setWaitForDumpTimeout(int waitForDumpTimeout) {
-		this.waitForDumpTimeout = waitForDumpTimeout;
-	}
+    public void setWaitForDumpTimeout(int waitForDumpTimeout) {
+        this.waitForDumpTimeout = waitForDumpTimeout;
+    }
 
-	public int getWaitForDumpTimeout() {
-		return waitForDumpTimeout;
-	}
+    public int getWaitForDumpPollingInterval() {
+        return waitForDumpPollingInterval;
+    }
 
-	public void setWaitForDumpPollingInterval(int waitForDumpPollingInterval) {
-		this.waitForDumpPollingInterval = waitForDumpPollingInterval;
-	}
+    public void setWaitForDumpPollingInterval(int waitForDumpPollingInterval) {
+        this.waitForDumpPollingInterval = waitForDumpPollingInterval;
+    }
 
-	public int getWaitForDumpPollingInterval() {
-		return waitForDumpPollingInterval;
-	}
+    //properties
+    public String getDumpName() {
+        return dumpName;
+    }
 
-
-	//properties
-	public String getDumpName() {
-		return dumpName;
-	}
-
-	private void setDumpName(String dumpName) {
-		this.dumpName = dumpName;
-	}
-
-	public boolean isDumpFinished() {
-		return dumpFinished;
-	}
-
-	public void setDumpFinished(boolean dumpFinished) {
-		this.dumpFinished = dumpFinished;
-	}
+    public boolean isDumpFinished() {
+        return dumpFinished;
+    }
 }
