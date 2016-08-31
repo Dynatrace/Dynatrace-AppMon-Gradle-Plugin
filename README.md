@@ -31,8 +31,6 @@ The automation plugin enables FULL Automation of Dynatrace by leveraging the RES
 * Dynatrace Application Monitoring version: 6.3+
 * Gradle 2.14+
 
-Find further information in the [Dynatrace community](https://community.dynatrace.com/community/display/DL/Automation+Library+%28Ant,+Maven%29+for+Dynatrace).
-
 ### <a name="manual_installation"></a>Manual Installation
 
 * Download the [latest plugin]() and extract it into the `lib` folder in your project
@@ -57,7 +55,7 @@ Find further information in the [Dynatrace community](https://community.dynatrac
 ## Building
 
 In order to build the plugin, Gradle environment is needed to be configured in your system. Then you should be able to build package by executing `gradlew build`.
-Jar file should be available it `build/libs` folder
+Jar file should be available in `build/libs` folder
 
 ## <a name="configuration"></a>Configuration
 
