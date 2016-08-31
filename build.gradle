@@ -66,5 +66,17 @@ dependencies {
 	compileAndIncludeInJar fileTree(dir: 'lib', include: '*.jar')
 	compile gradleApi()
 	
-	testCompile 'junit:junit:4.12'
+    testCompile gradleApi()
+    testCompile 'junit:junit:4.12'
+	
+	/*
+    testCompile 'org.powermock:powermock-core:1.6.1'
+    testCompile 'org.powermock:powermock-module-junit4:1.6.1'
+    testCompile 'org.powermock:powermock-api-mockito:1.6.1'
+	testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+	*/
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.0'
 }
