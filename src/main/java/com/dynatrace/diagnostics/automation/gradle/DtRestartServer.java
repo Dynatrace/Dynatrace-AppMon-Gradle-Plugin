@@ -31,6 +31,8 @@ package com.dynatrace.diagnostics.automation.gradle;
 import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
 import com.dynatrace.sdk.server.exceptions.ServerResponseException;
 import com.dynatrace.sdk.server.servermanagement.ServerManagement;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -40,6 +42,8 @@ import org.gradle.tooling.BuildException;
 public class DtRestartServer extends DtServerBase {
     public static final String NAME = "DtRestartServer";
 
+    @Input
+    @Optional
     private boolean restart = true;
 
     /**
@@ -53,12 +57,14 @@ public class DtRestartServer extends DtServerBase {
 
         try {
             if (this.restart) {
+                this.getLogger().info(String.format("Restarting '%s' server", this.getDynatraceClient().getConfiguration().getHost()));
                 serverManagement.restart();
             } else {
+                this.getLogger().info(String.format("Shutdown '%s' server", this.getDynatraceClient().getConfiguration().getHost()));
                 serverManagement.shutdown();
             }
         } catch (ServerConnectionException | ServerResponseException e) {
-            throw new BuildException(e.getMessage(), e);
+            throw new BuildException(String.format("Error while trying to restart/shutdown '%s' server: %s", this.getDynatraceClient().getConfiguration().getHost(), e.getMessage()), e);
         }
     }
 

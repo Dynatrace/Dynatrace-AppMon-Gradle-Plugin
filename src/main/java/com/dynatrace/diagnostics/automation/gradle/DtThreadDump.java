@@ -33,6 +33,8 @@ import com.dynatrace.sdk.server.exceptions.ServerResponseException;
 import com.dynatrace.sdk.server.resourcedumps.ResourceDumps;
 import com.dynatrace.sdk.server.resourcedumps.models.CreateThreadDumpRequest;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -42,12 +44,19 @@ import org.gradle.tooling.BuildException;
 public class DtThreadDump extends DtAgentBase {
     public static final String NAME = "DtThreadDump";
 
-    private boolean sessionLocked;
+    @Input
+    @Optional
+    private boolean sessionLocked = false;
 
+    @Input
+    @Optional
     private int waitForDumpTimeout = 60000;
+
+    @Input
+    @Optional
     private int waitForDumpPollingInterval = 5000;
 
-    //properties
+    /* task outputs */
     private String dumpName = null;
     private boolean dumpFinished = false;
 
@@ -81,7 +90,7 @@ public class DtThreadDump extends DtAgentBase {
                 this.dumpFinished = Boolean.TRUE.equals(resourceDumps.getThreadDumpStatus(this.getProfileName(), this.dumpName).getResultValue());
             }
         } catch (ServerConnectionException | ServerResponseException e) {
-            throw new BuildException(e.getMessage(), e);
+            throw new BuildException(String.format("Error while trying to create thread dump: %s", e.getMessage()), e);
         }
     }
 
@@ -109,20 +118,12 @@ public class DtThreadDump extends DtAgentBase {
         this.waitForDumpPollingInterval = waitForDumpPollingInterval;
     }
 
-    //properties
     public String getDumpName() {
         return dumpName;
-    }
-
-    private void setDumpName(String dumpName) {
-        this.dumpName = dumpName;
     }
 
     public boolean isDumpFinished() {
         return dumpFinished;
     }
 
-    private void setDumpFinished(boolean dumpFinished) {
-        this.dumpFinished = dumpFinished;
-    }
 }

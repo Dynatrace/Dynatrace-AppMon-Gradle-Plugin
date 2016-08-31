@@ -37,6 +37,8 @@ import com.dynatrace.sdk.server.memorydumps.models.JobState;
 import com.dynatrace.sdk.server.memorydumps.models.MemoryDumpJob;
 import com.dynatrace.sdk.server.memorydumps.models.StoredSessionType;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -49,17 +51,39 @@ import java.net.URISyntaxException;
 public class DtMemoryDump extends DtAgentBase {
     public static final String NAME = "DtMemoryDump";
 
+    @Input
+    @Optional
     private String dumpType = "memdump_simple";
+
+    @Input
+    @Optional
     private boolean sessionLocked = false;
 
+    @Input
+    @Optional
     private int waitForDumpTimeout = 60000;
+
+    @Input
+    @Optional
     private int waitForDumpPollingInterval = 5000;
+
+    @Input
+    @Optional
     private boolean doGc = false;
+
+    @Input
+    @Optional
     private boolean autoPostProcess = false;
+
+    @Input
+    @Optional
     private boolean capturePrimitives = false;
+
+    @Input
+    @Optional
     private boolean captureStrings = false;
 
-    //properties
+    /* task outputs */
     private String dumpName = null;
     private boolean dumpFinished = false;
 
@@ -113,7 +137,7 @@ public class DtMemoryDump extends DtAgentBase {
         } catch (ServerResponseException e) {
             this.getLogger().log(LogLevel.ERROR, String.format("Cannot take memory dump: %s", e.getMessage()));
         } catch (ServerConnectionException | IllegalArgumentException e) {
-            throw new BuildException(e.getMessage(), e);
+            throw new BuildException(String.format("Error while trying to take memory dump: %s", e.getMessage()), e);
         }
     }
 
@@ -204,7 +228,6 @@ public class DtMemoryDump extends DtAgentBase {
         this.waitForDumpPollingInterval = waitForDumpPollingInterval;
     }
 
-    //properties
     public String getDumpName() {
         return dumpName;
     }

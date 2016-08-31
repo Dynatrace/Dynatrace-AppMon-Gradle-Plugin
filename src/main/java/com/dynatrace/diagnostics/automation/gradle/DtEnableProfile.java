@@ -32,6 +32,7 @@ import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
 import com.dynatrace.sdk.server.exceptions.ServerResponseException;
 import com.dynatrace.sdk.server.systemprofiles.SystemProfiles;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -42,6 +43,7 @@ public class DtEnableProfile extends DtServerProfileBase {
 
     public static final String NAME = "DtEnableProfile";
 
+    @Input
     private boolean enable = true;
 
     /**
@@ -63,7 +65,7 @@ public class DtEnableProfile extends DtServerProfileBase {
             }
 
         } catch (ServerConnectionException | ServerResponseException e) {
-            throw new BuildException(e.getMessage(), e);
+            throw new BuildException(String.format("Error while trying to enable/disable '%s' system profile: %s", this.getProfileName(), e.getMessage()), e);
         }
     }
 

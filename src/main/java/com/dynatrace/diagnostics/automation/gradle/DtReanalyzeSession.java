@@ -31,6 +31,8 @@ package com.dynatrace.diagnostics.automation.gradle;
 import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
 import com.dynatrace.sdk.server.exceptions.ServerResponseException;
 import com.dynatrace.sdk.server.sessions.Sessions;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -40,11 +42,18 @@ import org.gradle.tooling.BuildException;
 public class DtReanalyzeSession extends DtServerBase {
     public static final String NAME = "DtReanalyzeSession";
 
+    @Input
     private String sessionName;
+
+    @Input
+    @Optional
     private int reanalyzeSessionTimeout = 60000;
+
+    @Input
+    @Optional
     private int reanalyzeSessionPollingInterval = 5000;
 
-    //properties
+    /* task outputs */
     private boolean reanalyzeFinished = false;
 
     /**
@@ -54,6 +63,8 @@ public class DtReanalyzeSession extends DtServerBase {
      */
     @TaskAction
     public void executeTask() throws BuildException {
+        this.getLogger().info(String.format("Reanalyzing '%s' session", this.sessionName));
+
         Sessions sessions = new Sessions(this.getDynatraceClient());
         try {
             if (sessions.reanalyze(this.getSessionName())) {
@@ -72,8 +83,9 @@ public class DtReanalyzeSession extends DtServerBase {
                     this.reanalyzeFinished = sessions.getReanalysisStatus(this.sessionName);
                 }
             }
+            this.getLogger().info(String.format("Reanalyzing '%s' session finished %s success ", this.sessionName, (reanalyzeFinished) ? "with" : "without"));
         } catch (ServerConnectionException | ServerResponseException e) {
-            throw new BuildException(e.getMessage(), e);
+            throw new BuildException(String.format("Error while trying to reanalyze '%s' session: %s", this.sessionName, e.getMessage()), e);
         }
     }
 
@@ -102,7 +114,6 @@ public class DtReanalyzeSession extends DtServerBase {
         this.reanalyzeSessionPollingInterval = reanalyzeSessionPollingInterval;
     }
 
-    //properties
     public boolean isReanalyzeFinished() {
         return reanalyzeFinished;
     }

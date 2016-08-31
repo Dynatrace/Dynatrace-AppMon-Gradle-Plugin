@@ -29,12 +29,19 @@
 package com.dynatrace.diagnostics.automation.gradle;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.Internal;
 
 /**
  * Base class for Gradle task
  */
 abstract class GradleTask extends DefaultTask {
-    protected GradleExtension getProjectProperties() {
+    /**
+     * Returns project extension that contains global-scope properties
+     *
+     * @return {@link GradleExtension} that contains project properties
+     */
+    @Internal
+    public GradleExtension getProjectProperties() {
         GradleExtension extension = getProject().getExtensions().findByType(GradleExtension.class);
 
         if (extension != null) {

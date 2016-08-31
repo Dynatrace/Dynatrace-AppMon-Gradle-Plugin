@@ -32,6 +32,8 @@ import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
 import com.dynatrace.sdk.server.exceptions.ServerResponseException;
 import com.dynatrace.sdk.server.sessions.Sessions;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -41,14 +43,27 @@ import org.gradle.tooling.BuildException;
 public class DtStopRecording extends DtServerProfileBase {
     public static final String NAME = "DtStopRecording";
 
+    @Input
+    @Optional
     private boolean doReanalyzeSession = false;
 
+    @Input
+    @Optional
     private int reanalyzeSessionTimeout = 60000;
+
+    @Input
+    @Optional
     private int reanalyzeSessionPollingInterval = 5000;
+
+    @Input
+    @Optional
     private int stopDelay = 0;
+
+    @Input
+    @Optional
     private boolean failOnError = true;
 
-    //properties
+    /* task outputs */
     private boolean reanalyzeFinished = false;
     private String recordedSessionName;
 
@@ -143,7 +158,6 @@ public class DtStopRecording extends DtServerProfileBase {
         this.failOnError = failOnError;
     }
 
-    //properties
     public boolean isReanalyzeFinished() {
         return reanalyzeFinished;
     }

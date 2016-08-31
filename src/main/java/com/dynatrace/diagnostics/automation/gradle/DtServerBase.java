@@ -34,6 +34,8 @@ import com.dynatrace.sdk.org.apache.http.impl.client.CloseableHttpClient;
 import com.dynatrace.sdk.server.BasicServerConfiguration;
 import com.dynatrace.sdk.server.DynatraceClient;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.tooling.BuildException;
 
 import java.net.URI;
@@ -51,14 +53,22 @@ abstract class DtServerBase extends GradleTask {
      */
     private static final int CONNECTION_TIMEOUT = 0;
 
-    private String username = "admin";
-    private String password = "admin";
-    private String serverUrl = "https://localhost:8021";
-    private Boolean ignoreSSLErrors = true;
+    @Input
+    private String username = null;
+
+    @Input
+    private String password = null;
+
+    @Input
+    private String serverUrl = null;
+
+    @Input
+    private Boolean ignoreSSLErrors = null;
 
     /**
      * contains Dynatrace client
      */
+    @Internal
     private DynatraceClient dynatraceClient;
 
     /**

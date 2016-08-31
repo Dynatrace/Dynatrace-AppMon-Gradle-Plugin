@@ -33,6 +33,7 @@ import com.dynatrace.sdk.server.exceptions.ServerResponseException;
 import com.dynatrace.sdk.server.sessions.Sessions;
 import com.dynatrace.sdk.server.sessions.models.RecordingOption;
 import com.dynatrace.sdk.server.sessions.models.StoreSessionRequest;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -42,8 +43,13 @@ import org.gradle.tooling.BuildException;
 public class DtStorePurePaths extends DtServerProfileBase {
     public static final String NAME = "DtStorePurePaths";
 
-    private String recordingOption;
+    @Input
+    private String recordingOption = "all";
+
+    @Input
     private boolean sessionLocked = false;
+
+    @Input
     private boolean appendTimestamp = false;
 
     /**
@@ -63,10 +69,12 @@ public class DtStorePurePaths extends DtServerProfileBase {
             storeSessionRequest.setRecordingOption(RecordingOption.fromInternal(this.getRecordingOption()));
         }
 
+        this.getLogger().info(String.format("Storing pure paths with recording option '%s' in '%s' system profile", this.recordingOption, this.getProfileName()));
+
         try {
             sessions.store(storeSessionRequest);
         } catch (ServerConnectionException | ServerResponseException e) {
-            throw new BuildException(e.getMessage(), e);
+            throw new BuildException(String.format("Error while trying to store pure paths in '%s' system profile: %s",  this.getProfileName(), e.getMessage()), e);
         }
     }
 

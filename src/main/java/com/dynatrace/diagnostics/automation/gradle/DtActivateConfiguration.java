@@ -32,6 +32,7 @@ import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
 import com.dynatrace.sdk.server.exceptions.ServerResponseException;
 import com.dynatrace.sdk.server.systemprofiles.SystemProfiles;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -41,6 +42,7 @@ import org.gradle.tooling.BuildException;
 public class DtActivateConfiguration extends DtServerProfileBase {
     public static final String NAME = "DtActivateConfiguration";
 
+    @Input
     private String configuration;
 
     /**
@@ -56,7 +58,7 @@ public class DtActivateConfiguration extends DtServerProfileBase {
             SystemProfiles systemProfiles = new SystemProfiles(this.getDynatraceClient());
             systemProfiles.activateProfileConfiguration(this.getProfileName(), this.configuration);
         } catch (ServerConnectionException | ServerResponseException e) {
-            throw new BuildException(e.getMessage(), e);
+            throw new BuildException(String.format("Error while trying to activate '%s' configuration in '%s' system profile: %s", this.configuration, this.getProfileName(), e.getMessage()), e);
         }
     }
 

@@ -35,12 +35,12 @@ public class GradleExtension {
     public static final String NAME = "dynaTrace";
 
     private String baseDir;
-    private String username;
-    private String password;
-    private String serverUrl;
+    private String username = "admin";
+    private String password = "admin";
+    private String serverUrl = "https://localhost:8021";
     private String profile;
     private String sessionName;
-    private Boolean ignoreSSLErrors;
+    private Boolean ignoreSSLErrors = true;
 
     /* getters and setters for "dynaTrace" configuration extension */
     public String getBaseDir() {

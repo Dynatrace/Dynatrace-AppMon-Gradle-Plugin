@@ -34,6 +34,8 @@ import com.dynatrace.sdk.server.sessions.Sessions;
 import com.dynatrace.sdk.server.sessions.models.RecordingOption;
 import com.dynatrace.sdk.server.sessions.models.StartRecordingRequest;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -43,13 +45,26 @@ import org.gradle.tooling.BuildException;
 public class DtStartRecording extends DtServerProfileBase {
     public static final String NAME = "DtStartRecording";
 
+    @Input
+    @Optional
     private String sessionName;
-    private String sessionDescription;
-    private String recordingOption;
-    private boolean sessionLocked;
-    private boolean appendTimestamp;
 
-    //properties
+    @Input
+    @Optional
+    private String sessionDescription;
+
+    @Input
+    private String recordingOption = "all";
+
+    @Input
+    @Optional
+    private boolean sessionLocked = false;
+
+    @Input
+    @Optional
+    private boolean appendTimestamp = false;
+
+    /* task outputs */
     private String recordedSessionName = null;
 
     /**
@@ -77,7 +92,7 @@ public class DtStartRecording extends DtServerProfileBase {
 
             this.getProjectProperties().setSessionName(this.recordedSessionName);
         } catch (ServerConnectionException | ServerResponseException e) {
-            throw new BuildException(e.getMessage(), e);
+            throw new BuildException(String.format("Error while trying to start recording in '%s' system profile: %s", this.getProfileName(), e.getMessage()), e);
         }
     }
 
@@ -124,7 +139,6 @@ public class DtStartRecording extends DtServerProfileBase {
     /**
      * @return the name of the session the recording is started
      */
-    //properties
     public String getRecordedSessionName() {
         return recordedSessionName;
     }

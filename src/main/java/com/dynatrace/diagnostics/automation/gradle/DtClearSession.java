@@ -56,7 +56,7 @@ public class DtClearSession extends DtServerProfileBase {
 
             sessions.clear(this.getProfileName());
         } catch (ServerResponseException | ServerConnectionException e) {
-            throw new BuildException(e.getMessage(), e);
+            throw new BuildException(String.format("Error while trying to clear in '%s' system profile: %s", this.getProfileName(), e.getMessage()), e);
         }
     }
 }

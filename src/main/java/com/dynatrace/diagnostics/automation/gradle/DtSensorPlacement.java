@@ -31,6 +31,7 @@ package com.dynatrace.diagnostics.automation.gradle;
 import com.dynatrace.sdk.server.agentsandcollectors.AgentsAndCollectors;
 import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
 import com.dynatrace.sdk.server.exceptions.ServerResponseException;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -40,7 +41,8 @@ import org.gradle.tooling.BuildException;
 public class DtSensorPlacement extends DtServerBase {
     public static final String NAME = "DtSensorPlacement";
 
-    private int agentId;
+    @Input
+    private int agentId = 0;
 
     /**
      * Executes gradle task
@@ -52,9 +54,10 @@ public class DtSensorPlacement extends DtServerBase {
         AgentsAndCollectors agentsAndCollectors = new AgentsAndCollectors(this.getDynatraceClient());
 
         try {
+            this.getLogger().info(String.format("Placing sensor in '%s' agent", this.agentId));
             agentsAndCollectors.placeHotSensor(this.agentId);
         } catch (ServerConnectionException | ServerResponseException e) {
-            throw new BuildException(e.getMessage(), e);
+            throw new BuildException(String.format("Error while trying to place sensor in '%s' agent: %s", this.agentId, e.getMessage()), e);
         }
     }
 

@@ -31,6 +31,8 @@ package com.dynatrace.diagnostics.automation.gradle;
 import com.dynatrace.sdk.server.agentsandcollectors.AgentsAndCollectors;
 import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
 import com.dynatrace.sdk.server.exceptions.ServerResponseException;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -40,7 +42,11 @@ import org.gradle.tooling.BuildException;
 public class DtRestartCollector extends DtServerBase {
     public static final String NAME = "DtRestartCollector";
 
+    @Input
+    @Optional
     private boolean restart = true;
+
+    @Input
     private String collector;
 
     /**
@@ -54,12 +60,14 @@ public class DtRestartCollector extends DtServerBase {
 
         try {
             if (this.restart) {
+                this.getLogger().info(String.format("Restarting '%s' collector", this.collector));
                 agentsAndCollectors.restartCollector(this.collector);
             } else {
+                this.getLogger().info(String.format("Shutdown '%s' collector", this.collector));
                 agentsAndCollectors.shutdownCollector(this.collector);
             }
         } catch (ServerConnectionException | ServerResponseException e) {
-            throw new BuildException(e.getMessage(), e);
+            throw new BuildException(String.format("Error while trying to restart/shutdown '%s' collector: %s", this.collector, e.getMessage()), e);
         }
     }
 

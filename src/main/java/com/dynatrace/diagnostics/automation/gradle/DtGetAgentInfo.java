@@ -34,6 +34,8 @@ import com.dynatrace.sdk.server.agentsandcollectors.models.Agents;
 import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
 import com.dynatrace.sdk.server.exceptions.ServerResponseException;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -46,9 +48,15 @@ public class DtGetAgentInfo extends DtServerBase {
 
     public static final String NAME = "DtGetAgentInfo";
 
+    @Input
+    @Optional
     private int infoForAgentByIndex = -1;
+
+    @Input
+    @Optional
     private String infoForAgentByName;
 
+    /* task outputs */
     private String agentName;
     private String agentHost;
     private int agentProcessId;
@@ -83,7 +91,7 @@ public class DtGetAgentInfo extends DtServerBase {
             }
 
         } catch (ServerConnectionException | ServerResponseException e) {
-            throw new BuildException(e.getMessage(), e);
+            throw new BuildException(String.format("Error while trying to get information about agent: %s", e.getMessage()), e);
         }
     }
 
@@ -157,7 +165,6 @@ public class DtGetAgentInfo extends DtServerBase {
         this.infoForAgentByName = infoForAgentByName;
     }
 
-    //properties
     public String getAgentName() {
         return agentName;
     }

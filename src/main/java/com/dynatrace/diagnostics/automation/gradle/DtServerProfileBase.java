@@ -29,12 +29,14 @@
 package com.dynatrace.diagnostics.automation.gradle;
 
 import com.dynatrace.diagnostics.automation.util.DtUtil;
+import org.gradle.api.tasks.Input;
 
 /**
  * Base for gradle tasks which are using system profile
  */
 abstract class DtServerProfileBase extends DtServerBase {
 
+    @Input
     private String profileName;
 
     public String getProfileName() {

@@ -28,14 +28,21 @@
 
 package com.dynatrace.diagnostics.automation.gradle;
 
+import org.gradle.api.tasks.Input;
+
 /**
  * Defines base class for gradle tasks which are using agent properties
  */
 
 abstract class DtAgentBase extends DtServerProfileBase {
 
+    @Input
     private String hostName;
+
+    @Input
     private String agentName;
+
+    @Input
     private int processId;
 
     public String getHostName() {
@@ -63,7 +70,7 @@ abstract class DtAgentBase extends DtServerProfileBase {
     }
 
     /**
-     * Allows to use String representation of processId
+     * Allows to use String representation of the processId
      *
      * @param processId
      * @throws NumberFormatException whenever {@param processId}

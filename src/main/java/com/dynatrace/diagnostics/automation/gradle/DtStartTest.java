@@ -34,6 +34,8 @@ import com.dynatrace.sdk.server.testautomation.models.CreateTestRunRequest;
 import com.dynatrace.sdk.server.testautomation.models.TestCategory;
 import com.dynatrace.sdk.server.testautomation.models.TestMetaData;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
@@ -66,22 +68,48 @@ public class DtStartTest extends DtServerProfileBase {
     private static final String DEEP_INDENTATION_WITH_NEW_LINE = "\n\t\t";
 
     /* properties */
+    @Input
+    @Optional
     private final List<CustomProperty> properties = new ArrayList<CustomProperty>();
-    private String versionMajor;
-    private String versionMinor;
-    private String versionRevision;
-    private String versionMilestone;
-    private String versionBuild;
-    private String marker;
-    private String category;
-    private String platform;
 
+    @Input
+    private String category;
+
+    @Input
+    private String versionBuild;
+
+    @Input
+    @Optional
+    private String versionMajor;
+
+    @Input
+    @Optional
+    private String versionMinor;
+
+    @Input
+    @Optional
+    private String versionRevision;
+
+    @Input
+    @Optional
+    private String versionMilestone;
+
+    @Input
+    @Optional
+    private String marker;
+
+    @Input
+    @Optional
+    private String platform;
 
     /**
      * Flag to make this task fail on error. Default: true
      */
+    @Input
+    @Optional
     private boolean failOnError = true;
-    //properties
+
+    /* task outputs */
     private String testRunId = null;
 
     /**
@@ -310,7 +338,6 @@ public class DtStartTest extends DtServerProfileBase {
         this.failOnError = failOnError;
     }
 
-    //properties
     public String getTestRunId() {
         return testRunId;
     }
