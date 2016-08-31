@@ -26,9 +26,6 @@ apply plugin: 'idea'
 /* java configuration */
 apply plugin: 'java'
 
-group = 'com.dynatrace.diagnostics.automation'
-version = '6.5.0'
-
 compileJava {
     sourceCompatibility = 1.7
     targetCompatibility = 1.7
@@ -55,7 +52,7 @@ apply plugin: 'java-gradle-plugin'
 gradlePlugin {
     plugins {
         simplePlugin {
-            id = 'dynatrace-gradle-plugin'
+            id = pluginId
             implementationClass = 'com.dynatrace.diagnostics.automation.gradle.GradleEntryPoint'
         }
     }
