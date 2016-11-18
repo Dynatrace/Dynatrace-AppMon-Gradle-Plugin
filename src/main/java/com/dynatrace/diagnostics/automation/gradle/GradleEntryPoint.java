@@ -64,5 +64,6 @@ public class GradleEntryPoint implements Plugin<Project> {
         tasks.create(DtStopRecording.NAME, DtStopRecording.class);
         tasks.create(DtStorePurePaths.NAME, DtStorePurePaths.class);
         tasks.create(DtThreadDump.NAME, DtThreadDump.class);
+        tasks.create(DtFinishTest.NAME, DtFinishTest.class);
     }
 }

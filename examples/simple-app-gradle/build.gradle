@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
 	}
     dependencies {
-        classpath 'com.dynatrace.diagnostics.automation:gradle.plugin:6.5.0'
+        classpath 'com.dynatrace.diagnostics.automation:Dynatrace-Gradle-Plugin:7.0.0'
     }
 }
 
@@ -37,12 +37,20 @@ task PrintAgentInfo() << {
 	print DtGetAgentInfo.agentName
 }
 
-/* inject dtagent into test task JVM arguments */
+
 task InjectAgent(dependsOn: DtStartTest) << {
-	test.jvmArgs '-agentpath:C:\\Program Files\\dynaTrace\\dynaTrace 6.3\\agent\\lib64\\dtagent.dll=name=SimpleApp_SomeProfile,server=localhost,wait=5,optionTestRunIdJava=' + DtStartTest.testRunId
+	test.jvmArgs '-agentpath:/home/michal/dt/trunk-classic/jloadtrace/agent/lib64/libdtagent.so=name=Test_easyTravel,server=localhost,wait=5,optionTestRunIdJava=' + DtStartTest.testRunId
 }
 
 test.dependsOn InjectAgent
+test.doLast {
+	DtFinishTest {
+		testRunId = DtStartTest.testRunId
+	}
+	tasks.DtFinishTest.execute()
+	println "Dynatrace Gradle Plugin finish testRun ID="+DtStartTest.testRunId
+}
+
 
 task ConfigureMemoryDump(dependsOn: DtGetAgentInfo) << {
 	DtMemoryDump.hostName = DtGetAgentInfo.agentHost
@@ -61,14 +69,6 @@ dynaTrace {
 	serverUrl = 'https://localhost:8021'
 	profile = 'easyTravel'
 	ignoreSSLErrors = true
-}
-
-DtActivateConfiguration {
-	configuration = 'Default'
-}
-
-DtEnableProfile {
-	enable = true /* false to disable */
 }
 
 DtGetAgentInfo {
@@ -155,3 +155,4 @@ DtThreadDump {
 	
 	dependsOn ConfigureThreadDump
 }
+
