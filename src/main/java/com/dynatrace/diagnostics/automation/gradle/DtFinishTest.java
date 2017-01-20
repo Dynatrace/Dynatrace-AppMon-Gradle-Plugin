@@ -28,16 +28,15 @@
 
 package com.dynatrace.diagnostics.automation.gradle;
 
-import com.dynatrace.sdk.server.testautomation.TestAutomation;
+import java.text.MessageFormat;
+
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.plugins.WarPlugin;
-import org.gradle.api.java.archives.Attributes;
 import org.gradle.tooling.BuildException;
 
-import java.text.MessageFormat;
+import com.dynatrace.sdk.server.testautomation.TestAutomation;
 
 /**
  * Gradle task to start a test run

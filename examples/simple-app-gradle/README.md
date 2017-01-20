@@ -14,6 +14,6 @@ To run tests with injected agent, execute: `./gradlew test`
 ### Running tasks
 
 In order to run any Dynatrace Gradle Plugin tasks, execute `./gradlew TASKNAME` (e.g. `./gradlew DtEnableProfile`).
-Every task usage is presented in `build.gradle` file.
+Sample tasks usages are presented in `build.gradle` file.
 
 Keep in mind that **DtFinishTest** must have valid testRunID to know which testRun to finish. In the example project testRunId is set in Gradle **doLast** method as the DtFinishTest task configuration parameter.

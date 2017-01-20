@@ -51,19 +51,12 @@ public class GradleEntryPoint implements Plugin<Project> {
         TaskContainer tasks = project.getTasks();
 
         tasks.create(DtActivateConfiguration.NAME, DtActivateConfiguration.class);
-        tasks.create(DtClearSession.NAME, DtClearSession.class);
         tasks.create(DtEnableProfile.NAME, DtEnableProfile.class);
-        tasks.create(DtGetAgentInfo.NAME, DtGetAgentInfo.class);
-        tasks.create(DtMemoryDump.NAME, DtMemoryDump.class);
-        tasks.create(DtReanalyzeSession.NAME, DtReanalyzeSession.class);
-        tasks.create(DtRestartCollector.NAME, DtRestartCollector.class);
         tasks.create(DtRestartServer.NAME, DtRestartServer.class);
-        tasks.create(DtSensorPlacement.NAME, DtSensorPlacement.class);
         tasks.create(DtStartRecording.NAME, DtStartRecording.class);
         tasks.create(DtStartTest.NAME, DtStartTest.class);
         tasks.create(DtStopRecording.NAME, DtStopRecording.class);
         tasks.create(DtStorePurePaths.NAME, DtStorePurePaths.class);
-        tasks.create(DtThreadDump.NAME, DtThreadDump.class);
         tasks.create(DtFinishTest.NAME, DtFinishTest.class);
     }
 }

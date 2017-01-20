@@ -28,14 +28,15 @@
 
 package com.dynatrace.diagnostics.automation.gradle;
 
-import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
-import com.dynatrace.sdk.server.exceptions.ServerResponseException;
-import com.dynatrace.sdk.server.sessions.Sessions;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
+
+import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
+import com.dynatrace.sdk.server.exceptions.ServerResponseException;
+import com.dynatrace.sdk.server.sessions.Sessions;
 
 /**
  * Gradle task to stop recording session
@@ -65,7 +66,7 @@ public class DtStopRecording extends DtServerProfileBase {
 
     /* task outputs */
     private boolean reanalyzeFinished = false;
-    private String recordedSessionName;
+    private String recordedSessionLocation;
 
     /**
      * Executes gradle task
@@ -82,36 +83,18 @@ public class DtStopRecording extends DtServerProfileBase {
 
         try {
             Sessions sessions = new Sessions(this.getDynatraceClient());
-            this.recordedSessionName = sessions.stopRecording(this.getProfileName());
+            this.recordedSessionLocation = sessions.stopRecording(this.getProfileName());
 
-            this.getLogger().log(LogLevel.INFO, String.format("Stopped recording on %1$s with SessionName %2$s", getProfileName(), this.recordedSessionName));
+            this.getLogger().log(LogLevel.INFO, String.format("Stopped recording on %1$s with SessionLocation %2$s", getProfileName(), this.recordedSessionLocation));
 
-            this.getProjectProperties().setSessionName(this.recordedSessionName);
+            this.getProjectProperties().setSessionLocation(this.recordedSessionLocation);
 
-            if (this.doReanalyzeSession) {
-                this.reanalyzeFinished = sessions.getReanalysisStatus(this.recordedSessionName);
-
-                if (sessions.reanalyze(this.recordedSessionName)) {
-                    int timeout = this.reanalyzeSessionTimeout;
-
-                    while (!this.reanalyzeFinished && (timeout > 0)) {
-                        try {
-                            Thread.sleep(this.reanalyzeSessionPollingInterval);
-                            timeout -= this.reanalyzeSessionPollingInterval;
-                        } catch (InterruptedException e) {
-                            /* don't break execution */
-                        }
-
-                        this.reanalyzeFinished = sessions.getReanalysisStatus(this.recordedSessionName);
-                    }
-                }
-            }
         } catch (RuntimeException e) {
             if (this.failOnError) {
                 throw e;
             }
 
-            this.getLogger().log(LogLevel.WARN, String.format("Caught exception while Stopping session recording of session %1$s on profile %2$s. Since failOnError==true ignoring this exception.\n\tException message: %3$s", this.recordedSessionName, this.getProfileName(), e.getMessage()), e);
+            this.getLogger().log(LogLevel.WARN, String.format("Caught exception while Stopping session recording of session %1$s on profile %2$s. Since failOnError==true ignoring this exception.\n\tException message: %3$s", this.recordedSessionLocation, this.getProfileName(), e.getMessage()), e);
         } catch (ServerConnectionException | ServerResponseException e) {
             throw new BuildException(e.getMessage(), e);
         }
@@ -162,7 +145,7 @@ public class DtStopRecording extends DtServerProfileBase {
         return reanalyzeFinished;
     }
 
-    public String getRecordedSessionName() {
-        return recordedSessionName;
+	public String getRecordedSessionLocation() {
+        return recordedSessionLocation;
     }
 }
