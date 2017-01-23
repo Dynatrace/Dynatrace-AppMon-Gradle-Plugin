@@ -1,7 +1,7 @@
 buildscript {
     repositories {
         flatDir dirs: '../../build/libs'
-		
+
         mavenLocal()
         mavenCentral()
 	}
@@ -32,14 +32,13 @@ dependencies {
 /* use dynatrace plugin */
 apply plugin: 'dynatrace-gradle-plugin'
 
-/* custom tasks that are depending on  Dynatrace Gradle Plugin tasks */
-task PrintAgentInfo() << {
-	print DtGetAgentInfo.agentName
-}
-
-
+/**
+		Path to agent.
+		Windows "C:/Program Files/dynaTrace/dynaTrace 6.5/agent/lib64/dtagent.dll"
+		Unix "/opt/dynatrace-6.5/agent/lib64/libdtagent.so"
+*/
 task InjectAgent(dependsOn: DtStartTest) << {
-	test.jvmArgs '-agentpath:/home/michal/dt/trunk-classic/jloadtrace/agent/lib64/libdtagent.so=name=Test_easyTravel,server=localhost,wait=5,optionTestRunIdJava=' + DtStartTest.testRunId
+	test.jvmArgs '-agentpath:C:/workspaces/dynatrace/jloadtrace/agent/lib64/dtagent.dll=name=Test_easyTravel,server=localhost,wait=5,optionTestRunIdJava=' + DtStartTest.testRunId
 }
 
 test.dependsOn InjectAgent
@@ -52,18 +51,6 @@ test.doLast {
 }
 
 
-task ConfigureMemoryDump(dependsOn: DtGetAgentInfo) << {
-	DtMemoryDump.hostName = DtGetAgentInfo.agentHost
-	DtMemoryDump.agentName = DtGetAgentInfo.agentName
-	DtMemoryDump.processId = DtGetAgentInfo.agentProcessId
-}
-
-task ConfigureThreadDump(dependsOn: DtGetAgentInfo) << {
-	DtThreadDump.hostName = DtGetAgentInfo.agentHost
-	DtThreadDump.agentName = DtGetAgentInfo.agentName
-	DtThreadDump.processId = DtGetAgentInfo.agentProcessId
-}
-
 /* Dynatrace Plugin tasks with configuration */
 dynaTrace {
 	serverUrl = 'https://localhost:8021'
@@ -71,43 +58,8 @@ dynaTrace {
 	ignoreSSLErrors = true
 }
 
-DtGetAgentInfo {
-	infoForAgentByIndex = 0
-	//infoForAgentByName = 'someName'
-	
-	finalizedBy PrintAgentInfo
-}
-
-DtMemoryDump {
-	dumpType = 'memdump_simple'
-	sessionLocked = false
-	waitForDumpTimeout = 60000
-	waitForDumpPollingInterval = 5000
-	doGc = false
-	autoPostProcess = false
-	capturePrimitives = false
-	captureStrings = false
-	
-	dependsOn ConfigureMemoryDump
-}
-
-DtReanalyzeSession {
-	sessionName = 'session'
-	reanalyzeSessionTimeout = 60000
-	reanalyzeSessionPollingInterval = 5000
-}
-
-DtRestartCollector {
-	restart = true /* true to restart, false to shutdown */
-	collector = 'localhost' /* collector name */
-}
-
 DtRestartServer {
 	restart = true /* true to restart, false to shutdown */
-}
-
-DtSensorPlacement {
-	agentId = 123
 }
 
 DtStartRecording {
@@ -116,7 +68,7 @@ DtStartRecording {
 	recordingOption = 'all'
 	sessionLocked = false
 	appendTimestamp = false
-	//profile = 'someProfile'
+	//profileName = 'someProfile'
 }
 
 DtStopRecording {
@@ -125,7 +77,7 @@ DtStopRecording {
 	reanalyzeSessionPollingInterval = 5000
 	stopDelay = 0
 	failOnError = true
-	//profile = 'someProfile'
+	//profileName = 'someProfile'
 }
 
 DtStartTest {
@@ -137,7 +89,7 @@ DtStartTest {
 	platform = 'Linux'
 	marker = 'marker'
 	category = 'unit'
-	
+
     addCustomProperty 'testset', 'unit-tests'
 }
 
@@ -145,14 +97,6 @@ DtStorePurePaths {
 	recordingOption = 'all'
 	sessionLocked = false
 	appendTimestamp = false
-	//profile = 'someProfile'
-}
-
-DtThreadDump {
-	sessionLocked = false
-	waitForDumpTimeout = 60000
-	waitForDumpPollingInterval = 5000
-	
-	dependsOn ConfigureThreadDump
+	//profileName = 'someProfile'
 }
 
