@@ -3,7 +3,7 @@
 The automation plugin enables FULL Automation of Dynatrace by leveraging the REST interfaces of the Dynatrace AppMon Server. The automation plugin includes Gradle tasks to execute the following actions on the Dynatrace AppMon Server:
 * Activate Configuration: Activates a configuration within a system profile
 * Enable/Disable Profile
-* Start/Stop Session Recording: Returns the actual recorded session name
+* Start/Stop Session Recording: Returns the actual recorded session URI
 * Start Test: returns testrun id, allowing to inject it into Dynatrace agent parameters
 * Store pure paths
 

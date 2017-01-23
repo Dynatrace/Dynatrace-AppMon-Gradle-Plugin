@@ -33,7 +33,7 @@ dependencies {
 apply plugin: 'dynatrace-gradle-plugin'
 
 /**
-		Path to agent.
+		Example path to agent.
 		Windows "C:/Program Files/dynaTrace/dynaTrace 6.5/agent/lib64/dtagent.dll"
 		Unix "/opt/dynatrace-6.5/agent/lib64/libdtagent.so"
 */
