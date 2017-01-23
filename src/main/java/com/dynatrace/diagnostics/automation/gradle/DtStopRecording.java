@@ -66,7 +66,7 @@ public class DtStopRecording extends DtServerProfileBase {
 
     /* task outputs */
     private boolean reanalyzeFinished = false;
-    private String recordedSessionLocation;
+    private String sessionUri;
 
     /**
      * Executes gradle task
@@ -83,18 +83,18 @@ public class DtStopRecording extends DtServerProfileBase {
 
         try {
             Sessions sessions = new Sessions(this.getDynatraceClient());
-            this.recordedSessionLocation = sessions.stopRecording(this.getProfileName());
+            this.sessionUri = sessions.stopRecording(this.getProfileName());
 
-            this.getLogger().log(LogLevel.INFO, String.format("Stopped recording on %1$s with SessionLocation %2$s", getProfileName(), this.recordedSessionLocation));
+            this.getLogger().log(LogLevel.INFO, String.format("Stopped recording on %1$s with session URI %2$s", getProfileName(), this.sessionUri));
 
-            this.getProjectProperties().setSessionLocation(this.recordedSessionLocation);
+            this.getProjectProperties().setSessionUri(this.sessionUri);
 
         } catch (RuntimeException e) {
             if (this.failOnError) {
                 throw e;
             }
 
-            this.getLogger().log(LogLevel.WARN, String.format("Caught exception while Stopping session recording of session %1$s on profile %2$s. Since failOnError==true ignoring this exception.\n\tException message: %3$s", this.recordedSessionLocation, this.getProfileName(), e.getMessage()), e);
+            this.getLogger().log(LogLevel.WARN, String.format("Caught exception while Stopping session recording of session %1$s on profile %2$s. Since failOnError==true ignoring this exception.\n\tException message: %3$s", this.sessionUri, this.getProfileName(), e.getMessage()), e);
         } catch (ServerConnectionException | ServerResponseException e) {
             throw new BuildException(e.getMessage(), e);
         }
@@ -145,7 +145,7 @@ public class DtStopRecording extends DtServerProfileBase {
         return reanalyzeFinished;
     }
 
-	public String getRecordedSessionLocation() {
-        return recordedSessionLocation;
+	public String getSessionUri() {
+        return sessionUri;
     }
 }
