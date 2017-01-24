@@ -47,6 +47,7 @@ test.doLast {
 		testRunId = DtStartTest.testRunId
 	}
 	tasks.DtFinishTest.execute()
+	// tests with given metrics will be included within test run, all tests will be included if no metric filter is specified
 	println "Dynatrace Gradle Plugin finish testRun ID="+DtStartTest.testRunId
 }
 
