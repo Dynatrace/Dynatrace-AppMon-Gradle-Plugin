@@ -28,21 +28,23 @@
 
 package com.dynatrace.diagnostics.automation.gradle;
 
-import com.dynatrace.diagnostics.automation.util.DtUtil;
-import com.dynatrace.sdk.server.testautomation.TestAutomation;
-import com.dynatrace.sdk.server.testautomation.models.CreateTestRunRequest;
-import com.dynatrace.sdk.server.testautomation.models.TestCategory;
-import com.dynatrace.sdk.server.testautomation.models.TestMetaData;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.dynatrace.diagnostics.automation.util.DtUtil;
+import com.dynatrace.sdk.server.testautomation.TestAutomation;
+import com.dynatrace.sdk.server.testautomation.models.CreateTestRunRequest;
+import com.dynatrace.sdk.server.testautomation.models.TestCategory;
+import com.dynatrace.sdk.server.testautomation.models.TestMetaData;
+import com.dynatrace.sdk.server.testautomation.models.TestMetricFilter;
 
 /**
  * Gradle task to start a test run
@@ -102,6 +104,10 @@ public class DtStartTest extends DtServerProfileBase {
     @Optional
     private String platform;
 
+    @Input
+    @Optional
+    private final List<TestMetricFilter> includedMetrics = new ArrayList<>();
+
     /**
      * Flag to make this task fail on error. Default: true
      */
@@ -127,6 +133,14 @@ public class DtStartTest extends DtServerProfileBase {
         customProperty.setValue(value);
 
         properties.add(customProperty);
+    }
+
+    public void addMetricFilter(final TestMetricFilter metricFilter) {
+        includedMetrics.add(metricFilter);
+    }
+
+    public void addMetricFilter(String group, String metric) {
+	    includedMetrics.add(new TestMetricFilter(group, metric));
     }
 
     /**
@@ -226,6 +240,7 @@ public class DtStartTest extends DtServerProfileBase {
         }
 
         request.setAdditionalMetaData(testMetaData);
+        request.setIncludedMetrics(includedMetrics);
 
         return request;
     }

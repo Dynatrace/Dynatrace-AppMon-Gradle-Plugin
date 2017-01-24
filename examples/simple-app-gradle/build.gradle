@@ -90,7 +90,8 @@ DtStartTest {
 	marker = 'marker'
 	category = 'unit'
 
-    addCustomProperty 'testset', 'unit-tests'
+	addCustomProperty 'testset', 'unit-tests'
+	addMetricFilter 'Error Detection', 'Failed Transaction Count'
 }
 
 DtStorePurePaths {
