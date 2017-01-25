@@ -46,18 +46,6 @@ public class DtStopRecording extends DtServerProfileBase {
 
     @Input
     @Optional
-    private boolean doReanalyzeSession = false;
-
-    @Input
-    @Optional
-    private int reanalyzeSessionTimeout = 60000;
-
-    @Input
-    @Optional
-    private int reanalyzeSessionPollingInterval = 5000;
-
-    @Input
-    @Optional
     private int stopDelay = 0;
 
     @Input
@@ -65,7 +53,6 @@ public class DtStopRecording extends DtServerProfileBase {
     private boolean failOnError = true;
 
     /* task outputs */
-    private boolean reanalyzeFinished = false;
     private String sessionUri;
 
     /**
@@ -100,31 +87,6 @@ public class DtStopRecording extends DtServerProfileBase {
         }
     }
 
-    public boolean isDoReanalyzeSession() {
-        return doReanalyzeSession;
-    }
-
-    public void setDoReanalyzeSession(boolean doReanalyzeSession) {
-        this.doReanalyzeSession = doReanalyzeSession;
-    }
-
-    public int getReanalyzeSessionTimeout() {
-        return reanalyzeSessionTimeout;
-    }
-
-    public void setReanalyzeSessionTimeout(int reanalyzeSessionTimeout) {
-        this.reanalyzeSessionTimeout = reanalyzeSessionTimeout;
-    }
-
-    public int getReanalyzeSessionPollingInterval() {
-        return reanalyzeSessionPollingInterval;
-    }
-
-    public void setReanalyzeSessionPollingInterval(
-            int reanalyzeSessionPollingInterval) {
-        this.reanalyzeSessionPollingInterval = reanalyzeSessionPollingInterval;
-    }
-
     public int getStopDelay() {
         return stopDelay;
     }
@@ -139,10 +101,6 @@ public class DtStopRecording extends DtServerProfileBase {
 
     public void setFailOnError(boolean failOnError) {
         this.failOnError = failOnError;
-    }
-
-    public boolean isReanalyzeFinished() {
-        return reanalyzeFinished;
     }
 
 	public String getSessionUri() {

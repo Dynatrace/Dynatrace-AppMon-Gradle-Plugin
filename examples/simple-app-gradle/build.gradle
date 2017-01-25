@@ -73,9 +73,6 @@ DtStartRecording {
 }
 
 DtStopRecording {
-	doReanalyzeSession = false
-	reanalyzeSessionTimeout = 60000
-	reanalyzeSessionPollingInterval = 5000
 	stopDelay = 0
 	failOnError = true
 	//profileName = 'someProfile'
