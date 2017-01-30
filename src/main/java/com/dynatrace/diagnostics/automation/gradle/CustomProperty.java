@@ -36,6 +36,14 @@ public class CustomProperty {
     private String key;
     private String value;
 
+    public CustomProperty() {
+    }
+
+    public CustomProperty(String key, String value) {
+        this.key = key;
+        this.value = value;
+    }
+
     public String getKey() {
         return key;
     }

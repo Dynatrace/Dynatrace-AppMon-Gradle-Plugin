@@ -47,6 +47,7 @@ test.doLast {
 		testRunId = DtStartTest.testRunId
 	}
 	tasks.DtFinishTest.execute()
+	// tests with given metrics will be included within test run, all tests will be included if no metric filter is specified
 	println "Dynatrace Gradle Plugin finish testRun ID="+DtStartTest.testRunId
 }
 
@@ -72,9 +73,6 @@ DtStartRecording {
 }
 
 DtStopRecording {
-	doReanalyzeSession = false
-	reanalyzeSessionTimeout = 60000
-	reanalyzeSessionPollingInterval = 5000
 	stopDelay = 0
 	failOnError = true
 	//profileName = 'someProfile'
@@ -90,7 +88,8 @@ DtStartTest {
 	marker = 'marker'
 	category = 'unit'
 
-    addCustomProperty 'testset', 'unit-tests'
+	addCustomProperty 'testset', 'unit-tests'
+	addMetricFilter 'Error Detection', 'Failed Transaction Count'
 }
 
 DtStorePurePaths {
