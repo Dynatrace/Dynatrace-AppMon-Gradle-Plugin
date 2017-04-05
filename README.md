@@ -33,7 +33,7 @@ The automation plugin enables FULL Automation of Dynatrace by leveraging the RES
 
 ### <a name="manual_installation"></a>Manual Installation
 
-* Download the [latest plugin]() and extract it into the `lib` folder in your project
+* Download the [latest plugin](https://github.com/Dynatrace/Dynatrace-Gradle-Plugin/releases) and extract it into the `lib` folder in your project
 * Add the following to your build.gradle
 
    ```groovy
