@@ -7,11 +7,6 @@ buildscript {
 			url "https://plugins.gradle.org/m2/"
 		}
     }
-	
-    dependencies {
-        /* required for jar shadowing */
-        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3+'
-    }
 }
 
 repositories {
@@ -31,20 +26,6 @@ compileJava {
     targetCompatibility = 1.7
 }
 
-/* shadowJar */
-apply plugin: 'com.github.johnrengelman.shadow'
-
-configurations {
-    compileAndIncludeInJar
-    compile.extendsFrom(configurations.compileAndIncludeInJar)
-}
-	
-shadowJar {
-    configurations = [ project.configurations.compileAndIncludeInJar ]
-	classifier = null
-}
-
-build.finalizedBy shadowJar
 
 /* gradle plugin development configuration */
 apply plugin: 'java-gradle-plugin'
@@ -58,22 +39,84 @@ gradlePlugin {
     }
 }
 
+/** maven plugin for pom creation, installation */
+apply plugin: 'maven'
+/** signing of maven artifacts */
+apply plugin: 'signing'
+
+/** signing should be done only if executed with uploadArchives task,
+ * the 'required' property doesn't work so need to uncomment task to avoid failure in build*/
+//signing {
+//    required { gradle.taskGraph.hasTask("uploadArchives") }
+//    sign configurations.archives
+//}
+
 /* compile and testing dependencies */
 dependencies {
-	compileAndIncludeInJar fileTree(dir: 'lib', include: '*.jar')
 	compile gradleApi()
-	
+    compile 'com.dynatrace.sdk:server-rest-sdk:7.0.0'
+
     testCompile gradleApi()
     testCompile 'junit:junit:4.12'
-	
-	/*
-    testCompile 'org.powermock:powermock-core:1.6.1'
-    testCompile 'org.powermock:powermock-module-junit4:1.6.1'
-    testCompile 'org.powermock:powermock-api-mockito:1.6.1'
-	testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
-	*/
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                name 'Dynatrace Gradle Plugin'
+                packaging 'jar'
+                description 'The automation plugin enables automation of Dynatrace by leveraging the REST interfaces of the Dynatrace AppMon Server'
+                url 'https://github.com/Dynatrace/Dynatrace-Gradle-Plugin'
+
+                scm {
+                    connection 'scm:git:https://github.com/Dynatrace/Dynatrace-Gradle-Plugin.git'
+                    developerConnection 'scm:git:https://github.com/Dynatrace/Dynatrace-Gradle-Plugin.git'
+                    url 'https://github.com/Dynatrace/Dynatrace-Gradle-Plugin'
+                }
+
+                licenses {
+                    license {
+                        name 'dynaTrace BSD'
+                        url 'https://raw.githubusercontent.com/Dynatrace/Dynatrace-Gradle-Plugin/master/LICENSE'
+                    }
+                }
+
+                developers {
+                    developer {
+                        name 'Tomasz Chojnacki'
+                        email 'tomasz.chojnacki@dynatrace.com'
+                    }
+                }
+            }
+        }
+    }
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '3.0'
+    gradleVersion = '3.5'
 }
