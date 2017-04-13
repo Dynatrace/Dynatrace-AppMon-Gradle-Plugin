@@ -33,15 +33,15 @@ The automation plugin enables FULL Automation of Dynatrace by leveraging the RES
 * Add the following to your build.gradle
 
    ```groovy
-   buildscript {
+    buildscript {
         repositories {
-            flatDir dirs: 'libs'
-	}
-
-        dependencies {
-            classpath 'com.dynatrace.diagnostics.automation:gradle.plugin:7.0.0'
+            mavenLocal()
+            mavenCentral()
         }
-   }
+        dependencies {
+            classpath 'com.dynatrace.diagnostics.automation:dynatrace-gradle-plugin:7.0.0'
+        }
+    }
 
     apply plugin: 'dynatrace-gradle-plugin'
    ```

@@ -53,7 +53,7 @@ apply plugin: 'signing'
 
 /* compile and testing dependencies */
 dependencies {
-	compile gradleApi()
+    compile gradleApi()
     compile 'com.dynatrace.sdk:server-rest-sdk:7.0.0'
 
     testCompile gradleApi()
@@ -89,6 +89,7 @@ uploadArchives {
 
             pom.project {
                 name 'Dynatrace Gradle Plugin'
+                artifactId 'dynatrace-gradle-plugin'
                 packaging 'jar'
                 description 'The automation plugin enables automation of Dynatrace by leveraging the REST interfaces of the Dynatrace AppMon Server'
                 url 'https://github.com/Dynatrace/Dynatrace-Gradle-Plugin'
