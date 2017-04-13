@@ -1,12 +1,10 @@
 buildscript {
     repositories {
-        flatDir dirs: '../../build/libs'
-		
         mavenLocal()
         mavenCentral()
 	}
     dependencies {
-        classpath 'com.dynatrace.diagnostics.automation:gradle.plugin:6.5.0'
+        classpath 'com.dynatrace.diagnostics.automation:dynatrace-gradle-plugin:7.0.0'
     }
 }
 
@@ -32,29 +30,25 @@ dependencies {
 /* use dynatrace plugin */
 apply plugin: 'dynatrace-gradle-plugin'
 
-/* custom tasks that are depending on  Dynatrace Gradle Plugin tasks */
-task PrintAgentInfo() << {
-	print DtGetAgentInfo.agentName
-}
-
-/* inject dtagent into test task JVM arguments */
+/**
+		Example path to agent.
+		Windows "C:/Program Files/dynaTrace/dynaTrace 6.5/agent/lib64/dtagent.dll"
+		Unix "/opt/dynatrace-6.5/agent/lib64/libdtagent.so"
+*/
 task InjectAgent(dependsOn: DtStartTest) << {
-	test.jvmArgs '-agentpath:C:\\Program Files\\dynaTrace\\dynaTrace 6.3\\agent\\lib64\\dtagent.dll=name=SimpleApp_SomeProfile,server=localhost,wait=5,optionTestRunIdJava=' + DtStartTest.testRunId
+	test.jvmArgs '-agentpath:C:/workspaces/dynatrace/jloadtrace/agent/lib64/dtagent.dll=name=Test_easyTravel,server=localhost,wait=5,optionTestRunIdJava=' + DtStartTest.testRunId
 }
 
 test.dependsOn InjectAgent
-
-task ConfigureMemoryDump(dependsOn: DtGetAgentInfo) << {
-	DtMemoryDump.hostName = DtGetAgentInfo.agentHost
-	DtMemoryDump.agentName = DtGetAgentInfo.agentName
-	DtMemoryDump.processId = DtGetAgentInfo.agentProcessId
+test.doLast {
+	DtFinishTest {
+		testRunId = DtStartTest.testRunId
+	}
+	tasks.DtFinishTest.execute()
+	// tests with given metrics will be included within test run, all tests will be included if no metric filter is specified
+	println "Dynatrace Gradle Plugin finish testRun ID="+DtStartTest.testRunId
 }
 
-task ConfigureThreadDump(dependsOn: DtGetAgentInfo) << {
-	DtThreadDump.hostName = DtGetAgentInfo.agentHost
-	DtThreadDump.agentName = DtGetAgentInfo.agentName
-	DtThreadDump.processId = DtGetAgentInfo.agentProcessId
-}
 
 /* Dynatrace Plugin tasks with configuration */
 dynaTrace {
@@ -63,51 +57,8 @@ dynaTrace {
 	ignoreSSLErrors = true
 }
 
-DtActivateConfiguration {
-	configuration = 'Default'
-}
-
-DtEnableProfile {
-	enable = true /* false to disable */
-}
-
-DtGetAgentInfo {
-	infoForAgentByIndex = 0
-	//infoForAgentByName = 'someName'
-	
-	finalizedBy PrintAgentInfo
-}
-
-DtMemoryDump {
-	dumpType = 'memdump_simple'
-	sessionLocked = false
-	waitForDumpTimeout = 60000
-	waitForDumpPollingInterval = 5000
-	doGc = false
-	autoPostProcess = false
-	capturePrimitives = false
-	captureStrings = false
-	
-	dependsOn ConfigureMemoryDump
-}
-
-DtReanalyzeSession {
-	sessionName = 'session'
-	reanalyzeSessionTimeout = 60000
-	reanalyzeSessionPollingInterval = 5000
-}
-
-DtRestartCollector {
-	restart = true /* true to restart, false to shutdown */
-	collector = 'localhost' /* collector name */
-}
-
 DtRestartServer {
 	restart = true /* true to restart, false to shutdown */
-}
-
-DtSensorPlacement {
-	agentId = 123
 }
 
 DtStartRecording {
@@ -116,16 +67,13 @@ DtStartRecording {
 	recordingOption = 'all'
 	sessionLocked = false
 	appendTimestamp = false
-	//profile = 'someProfile'
+	//profileName = 'someProfile'
 }
 
 DtStopRecording {
-	doReanalyzeSession = false
-	reanalyzeSessionTimeout = 60000
-	reanalyzeSessionPollingInterval = 5000
 	stopDelay = 0
 	failOnError = true
-	//profile = 'someProfile'
+	//profileName = 'someProfile'
 }
 
 DtStartTest {
@@ -137,21 +85,15 @@ DtStartTest {
 	platform = 'Linux'
 	marker = 'marker'
 	category = 'unit'
-	
-    addCustomProperty 'testset', 'unit-tests'
+
+	addCustomProperty 'testset', 'unit-tests'
+	addMetricFilter 'Error Detection', 'Failed Transaction Count'
 }
 
 DtStorePurePaths {
 	recordingOption = 'all'
 	sessionLocked = false
 	appendTimestamp = false
-	//profile = 'someProfile'
+	//profileName = 'someProfile'
 }
 
-DtThreadDump {
-	sessionLocked = false
-	waitForDumpTimeout = 60000
-	waitForDumpPollingInterval = 5000
-	
-	dependsOn ConfigureThreadDump
-}

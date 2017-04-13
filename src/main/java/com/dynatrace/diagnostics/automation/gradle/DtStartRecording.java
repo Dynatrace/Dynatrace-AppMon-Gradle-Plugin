@@ -65,7 +65,7 @@ public class DtStartRecording extends DtServerProfileBase {
     private boolean appendTimestamp = false;
 
     /* task outputs */
-    private String recordedSessionName = null;
+    private String sessionUri = null;
 
     /**
      * Executes gradle task
@@ -87,10 +87,10 @@ public class DtStartRecording extends DtServerProfileBase {
         }
 
         try {
-            this.recordedSessionName = sessions.startRecording(startRecordingRequest);
-            this.getLogger().log(LogLevel.INFO, String.format("Started recording on %s with SessionName %s", this.getProfileName(), this.recordedSessionName));
+            this.sessionUri = sessions.startRecording(startRecordingRequest);
+            this.getLogger().log(LogLevel.INFO, String.format("Started recording on %s with session URI %s", this.getProfileName(), this.sessionUri));
 
-            this.getProjectProperties().setSessionName(this.recordedSessionName);
+            this.getProjectProperties().setSessionUri(this.sessionUri);
         } catch (ServerConnectionException | ServerResponseException e) {
             throw new BuildException(String.format("Error while trying to start recording in '%s' system profile: %s", this.getProfileName(), e.getMessage()), e);
         }
@@ -137,9 +137,9 @@ public class DtStartRecording extends DtServerProfileBase {
     }
 
     /**
-     * @return the name of the session the recording is started
+     * @return the resource location of the session the recording is started
      */
-    public String getRecordedSessionName() {
-        return recordedSessionName;
+    public String getSessionUri() {
+        return sessionUri;
     }
 }

@@ -33,6 +33,7 @@ import com.dynatrace.sdk.server.testautomation.TestAutomation;
 import com.dynatrace.sdk.server.testautomation.models.CreateTestRunRequest;
 import com.dynatrace.sdk.server.testautomation.models.TestCategory;
 import com.dynatrace.sdk.server.testautomation.models.TestMetaData;
+import com.dynatrace.sdk.server.testautomation.models.TestMetricFilter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -102,6 +103,10 @@ public class DtStartTest extends DtServerProfileBase {
     @Optional
     private String platform;
 
+    @Input
+    @Optional
+    private final List<TestMetricFilter> metricFilters = new ArrayList<>();
+
     /**
      * Flag to make this task fail on error. Default: true
      */
@@ -115,7 +120,7 @@ public class DtStartTest extends DtServerProfileBase {
     /**
      * Used to add a custom property to the test meta data
      *
-     * @param property
+     * @param property a custom property
      */
     public void addCustomProperty(final CustomProperty property) {
         properties.add(property);
@@ -127,6 +132,14 @@ public class DtStartTest extends DtServerProfileBase {
         customProperty.setValue(value);
 
         properties.add(customProperty);
+    }
+
+    public void addMetricFilter(final TestMetricFilter metricFilter) {
+        metricFilters.add(metricFilter);
+    }
+
+    public void addMetricFilter(String group, String metric) {
+	    metricFilters.add(new TestMetricFilter(group, metric));
     }
 
     /**
@@ -226,6 +239,7 @@ public class DtStartTest extends DtServerProfileBase {
         }
 
         request.setAdditionalMetaData(testMetaData);
+        request.setIncludedMetrics(metricFilters);
 
         return request;
     }
@@ -261,6 +275,17 @@ public class DtStartTest extends DtServerProfileBase {
                 stringBuilder.append(DEEP_INDENTATION_WITH_NEW_LINE).append(property.getKey()).append("=").append(property.getValue());
             }
         }
+
+        if (!this.metricFilters.isEmpty()) {
+
+            stringBuilder.append(INDENTATION_WITH_NEW_LINE).append("metric filter: ");
+            for (TestMetricFilter metricFilter : metricFilters) {
+                stringBuilder.append(DEEP_INDENTATION_WITH_NEW_LINE)
+                        .append("group").append("=").append(metricFilter.getGroup())
+                        .append(", metric").append("=").append(metricFilter.getMetric());
+            }
+        }
+
 
         return stringBuilder.toString();
     }

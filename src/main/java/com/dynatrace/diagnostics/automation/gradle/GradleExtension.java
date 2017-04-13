@@ -39,6 +39,7 @@ public class GradleExtension {
     private String serverUrl = "https://localhost:8021";
     private String profile;
     private String sessionName;
+    private String sessionUri;
     private Boolean ignoreSSLErrors = true;
 
     /* getters and setters for "dynaTrace" configuration extension */
@@ -82,7 +83,15 @@ public class GradleExtension {
         this.sessionName = sessionName;
     }
 
-    public Boolean getIgnoreSSLErrors() {
+    public String getSessionUri() {
+		return sessionUri;
+	}
+
+	public void setSessionUri(String sessionUri) {
+		this.sessionUri = sessionUri;
+	}
+
+	public Boolean getIgnoreSSLErrors() {
         return ignoreSSLErrors;
     }
 

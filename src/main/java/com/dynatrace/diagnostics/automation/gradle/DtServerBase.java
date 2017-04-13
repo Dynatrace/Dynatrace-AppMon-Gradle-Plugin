@@ -28,18 +28,19 @@
 
 package com.dynatrace.diagnostics.automation.gradle;
 
-import com.dynatrace.diagnostics.automation.util.DtUtil;
-import com.dynatrace.sdk.org.apache.http.client.utils.URIBuilder;
-import com.dynatrace.sdk.org.apache.http.impl.client.CloseableHttpClient;
-import com.dynatrace.sdk.server.BasicServerConfiguration;
-import com.dynatrace.sdk.server.DynatraceClient;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.tooling.BuildException;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import com.dynatrace.diagnostics.automation.util.DtUtil;
+import com.dynatrace.sdk.server.BasicServerConfiguration;
+import com.dynatrace.sdk.server.DynatraceClient;
 
 /**
  * Base for Gradle tasks which are using server connection
@@ -129,7 +130,6 @@ abstract class DtServerBase extends GradleTask {
      * Used only for testing purposes
      *
      * @param client - user-defined {@link CloseableHttpClient}
-     * @return {@link DynatraceClient} with parameters provided in properties
      * @throws BuildException whenever execution fails
      */
     public void setDynatraceClientWithCustomHttpClient(CloseableHttpClient client) throws BuildException {
