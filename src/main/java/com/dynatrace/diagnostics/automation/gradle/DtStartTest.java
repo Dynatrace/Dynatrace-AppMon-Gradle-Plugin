@@ -120,7 +120,7 @@ public class DtStartTest extends DtServerProfileBase {
     /**
      * Used to add a custom property to the test meta data
      *
-     * @param property
+     * @param property a custom property
      */
     public void addCustomProperty(final CustomProperty property) {
         properties.add(property);

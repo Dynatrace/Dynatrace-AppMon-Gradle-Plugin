@@ -130,7 +130,6 @@ abstract class DtServerBase extends GradleTask {
      * Used only for testing purposes
      *
      * @param client - user-defined {@link CloseableHttpClient}
-     * @return {@link DynatraceClient} with parameters provided in properties
      * @throws BuildException whenever execution fails
      */
     public void setDynatraceClientWithCustomHttpClient(CloseableHttpClient client) throws BuildException {

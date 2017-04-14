@@ -1,12 +1,10 @@
 buildscript {
     repositories {
-        flatDir dirs: '../../build/libs'
-
         mavenLocal()
         mavenCentral()
 	}
     dependencies {
-        classpath 'com.dynatrace.diagnostics.automation:Dynatrace-Gradle-Plugin:7.0.0'
+        classpath 'com.dynatrace.diagnostics.automation:dynatrace-gradle-plugin:7.0.0'
     }
 }
 
