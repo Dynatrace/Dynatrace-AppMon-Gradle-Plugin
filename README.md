@@ -115,3 +115,4 @@ Description of Available Gradle Tasks
 - [Continuous Delivery & Test Automation](https://www.dynatrace.com/support/doc/appmon/continuous-delivery-test-automation/)
 - [Capture Performance Data from Tests](https://www.dynatrace.com/support/doc/appmon/continuous-delivery-test-automation/capture-performance-data-from-tests/)
 - [Integrate Dynatrace in Continous Integration Builds](https://www.dynatrace.com/support/doc/appmon/continuous-delivery-test-automation/automation-and-integration/continuous-integration-builds/)
+
