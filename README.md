@@ -29,7 +29,7 @@ The automation plugin enables FULL Automation of Dynatrace by leveraging the RES
 
 ### <a name="manual_installation"></a>Manual Installation
 
-* Download the [latest plugin]() and extract it into the `lib` folder in your project
+Plugin library is available in maven central repository (starting with version 7.0.0).
 * Add the following to your build.gradle
 
    ```groovy
@@ -112,7 +112,7 @@ Description of Available Gradle Tasks
 
 ## <a name="resources"></a>Additional Resources
 
-- [Continuous Delivery & Test Automation](https://community.dynatrace.com/community/pages/viewpage.action?pageId=215161284)
-- [Capture Performance Data from Tests](https://community.dynatrace.com/community/display/DOCDT63/Capture+Performance+Data+from+Tests)
-- [Integrate Dynatrace in Continous Integration Builds](https://community.dynatrace.com/community/display/DOCDT63/Integrate+Dynatrace+in+Continuous+Integration+Builds)
+- [Continuous Delivery & Test Automation](https://www.dynatrace.com/support/doc/appmon/continuous-delivery-test-automation/)
+- [Capture Performance Data from Tests](https://www.dynatrace.com/support/doc/appmon/continuous-delivery-test-automation/capture-performance-data-from-tests/)
+- [Integrate Dynatrace in Continous Integration Builds](https://www.dynatrace.com/support/doc/appmon/continuous-delivery-test-automation/automation-and-integration/continuous-integration-builds/)
 
