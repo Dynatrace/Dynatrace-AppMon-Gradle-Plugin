@@ -28,32 +28,21 @@
 
 package com.dynatrace.diagnostics.automation.gradle;
 
-import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
-import com.dynatrace.sdk.server.exceptions.ServerResponseException;
-import com.dynatrace.sdk.server.sessions.Sessions;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
+import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
+import com.dynatrace.sdk.server.exceptions.ServerResponseException;
+import com.dynatrace.sdk.server.sessions.Sessions;
+
 /**
  * Gradle task to stop recording session
  */
 public class DtStopRecording extends DtServerProfileBase {
     public static final String NAME = "DtStopRecording";
-
-    @Input
-    @Optional
-    private boolean doReanalyzeSession = false;
-
-    @Input
-    @Optional
-    private int reanalyzeSessionTimeout = 60000;
-
-    @Input
-    @Optional
-    private int reanalyzeSessionPollingInterval = 5000;
 
     @Input
     @Optional
@@ -64,8 +53,7 @@ public class DtStopRecording extends DtServerProfileBase {
     private boolean failOnError = true;
 
     /* task outputs */
-    private boolean reanalyzeFinished = false;
-    private String recordedSessionName;
+    private String sessionUri;
 
     /**
      * Executes gradle task
@@ -82,64 +70,21 @@ public class DtStopRecording extends DtServerProfileBase {
 
         try {
             Sessions sessions = new Sessions(this.getDynatraceClient());
-            this.recordedSessionName = sessions.stopRecording(this.getProfileName());
+            this.sessionUri = sessions.stopRecording(this.getProfileName());
 
-            this.getLogger().log(LogLevel.INFO, String.format("Stopped recording on %1$s with SessionName %2$s", getProfileName(), this.recordedSessionName));
+            this.getLogger().log(LogLevel.INFO, String.format("Stopped recording on %1$s with session URI %2$s", getProfileName(), this.sessionUri));
 
-            this.getProjectProperties().setSessionName(this.recordedSessionName);
+            this.getProjectProperties().setSessionUri(this.sessionUri);
 
-            if (this.doReanalyzeSession) {
-                this.reanalyzeFinished = sessions.getReanalysisStatus(this.recordedSessionName);
-
-                if (sessions.reanalyze(this.recordedSessionName)) {
-                    int timeout = this.reanalyzeSessionTimeout;
-
-                    while (!this.reanalyzeFinished && (timeout > 0)) {
-                        try {
-                            Thread.sleep(this.reanalyzeSessionPollingInterval);
-                            timeout -= this.reanalyzeSessionPollingInterval;
-                        } catch (InterruptedException e) {
-                            /* don't break execution */
-                        }
-
-                        this.reanalyzeFinished = sessions.getReanalysisStatus(this.recordedSessionName);
-                    }
-                }
-            }
         } catch (RuntimeException e) {
             if (this.failOnError) {
                 throw e;
             }
 
-            this.getLogger().log(LogLevel.WARN, String.format("Caught exception while Stopping session recording of session %1$s on profile %2$s. Since failOnError==true ignoring this exception.\n\tException message: %3$s", this.recordedSessionName, this.getProfileName(), e.getMessage()), e);
+            this.getLogger().log(LogLevel.WARN, String.format("Caught exception while Stopping session recording of session %1$s on profile %2$s. Since failOnError==true ignoring this exception.\n\tException message: %3$s", this.sessionUri, this.getProfileName(), e.getMessage()), e);
         } catch (ServerConnectionException | ServerResponseException e) {
             throw new BuildException(e.getMessage(), e);
         }
-    }
-
-    public boolean isDoReanalyzeSession() {
-        return doReanalyzeSession;
-    }
-
-    public void setDoReanalyzeSession(boolean doReanalyzeSession) {
-        this.doReanalyzeSession = doReanalyzeSession;
-    }
-
-    public int getReanalyzeSessionTimeout() {
-        return reanalyzeSessionTimeout;
-    }
-
-    public void setReanalyzeSessionTimeout(int reanalyzeSessionTimeout) {
-        this.reanalyzeSessionTimeout = reanalyzeSessionTimeout;
-    }
-
-    public int getReanalyzeSessionPollingInterval() {
-        return reanalyzeSessionPollingInterval;
-    }
-
-    public void setReanalyzeSessionPollingInterval(
-            int reanalyzeSessionPollingInterval) {
-        this.reanalyzeSessionPollingInterval = reanalyzeSessionPollingInterval;
     }
 
     public int getStopDelay() {
@@ -158,11 +103,7 @@ public class DtStopRecording extends DtServerProfileBase {
         this.failOnError = failOnError;
     }
 
-    public boolean isReanalyzeFinished() {
-        return reanalyzeFinished;
-    }
-
-    public String getRecordedSessionName() {
-        return recordedSessionName;
+	public String getSessionUri() {
+        return sessionUri;
     }
 }

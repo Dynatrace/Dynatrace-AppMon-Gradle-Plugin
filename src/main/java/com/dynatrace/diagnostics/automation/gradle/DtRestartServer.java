@@ -51,7 +51,7 @@ public class DtRestartServer extends DtServerBase {
      *
      * @throws BuildException whenever connecting to the server, parsing a response or execution fails
      */
-    @TaskAction
+    @TaskAction // TODO same as enable profile
     public void executeTask() throws BuildException {
         ServerManagement serverManagement = new ServerManagement(this.getDynatraceClient());
 

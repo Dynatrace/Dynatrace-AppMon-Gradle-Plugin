@@ -28,26 +28,32 @@
 
 package com.dynatrace.diagnostics.automation.gradle;
 
-import com.dynatrace.sdk.server.agentsandcollectors.AgentsAndCollectors;
-import com.dynatrace.sdk.server.exceptions.ServerConnectionException;
-import com.dynatrace.sdk.server.exceptions.ServerResponseException;
+import java.text.MessageFormat;
+
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.tooling.BuildException;
 
-/**
- * Gradle task to restart or shutdown the collector
- */
-public class DtRestartCollector extends DtServerBase {
-    public static final String NAME = "DtRestartCollector";
+import com.dynatrace.sdk.server.testautomation.TestAutomation;
 
+/**
+ * Gradle task to start a test run
+ */
+public class DtFinishTest extends DtServerProfileBase {
+    public static final String NAME = "DtFinishTest";
+
+    /* properties */
+    @Input
+    private String testRunId;
+
+    /**
+     * Flag to make this task fail on error. Default: true
+     */
     @Input
     @Optional
-    private boolean restart = true;
-
-    @Input
-    private String collector;
+    private boolean failOnError = true;
 
     /**
      * Executes gradle task
@@ -56,34 +62,26 @@ public class DtRestartCollector extends DtServerBase {
      */
     @TaskAction
     public void executeTask() throws BuildException {
-        AgentsAndCollectors agentsAndCollectors = new AgentsAndCollectors(this.getDynatraceClient());
-
         try {
-            if (this.restart) {
-                this.getLogger().info(String.format("Restarting '%s' collector", this.collector));
-                agentsAndCollectors.restartCollector(this.collector);
-            } else {
-                this.getLogger().info(String.format("Shutdown '%s' collector", this.collector));
-                agentsAndCollectors.shutdownCollector(this.collector);
+
+            TestAutomation testAutomation = new TestAutomation(this.getDynatraceClient());
+            testAutomation.finishTestRun(this.getProfileName(),testRunId);
+
+            this.getLogger().log(LogLevel.INFO, MessageFormat.format("Finish testRun profile %s with testRun ID=%s", this.getProfileName(),testRunId));
+        } catch (Exception e) {
+            if (this.failOnError) {
+                if (e instanceof BuildException) {
+                    throw (BuildException) e;
+                }
+                throw new BuildException(e.getMessage(), e);
             }
-        } catch (ServerConnectionException | ServerResponseException e) {
-            throw new BuildException(String.format("Error while trying to restart/shutdown '%s' collector: %s", this.collector, e.getMessage()), e);
+            this.getLogger().log(LogLevel.ERROR, String.format("Exception when finishing testRun profile %s with testRun ID=%s", this.getProfileName(),testRunId), e);
         }
     }
 
-    public boolean isRestart() {
-        return restart;
-    }
+    public final String getTestRunId() { return  testRunId; }
 
-    public void setRestart(boolean restart) {
-        this.restart = restart;
-    }
-
-    public String getCollector() {
-        return collector;
-    }
-
-    public void setCollector(String collector) {
-        this.collector = collector;
+    public final void setTestRunId(String testRunId) {
+        this.testRunId = testRunId;
     }
 }
